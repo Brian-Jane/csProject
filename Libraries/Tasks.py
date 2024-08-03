@@ -1,5 +1,4 @@
-#untested
-
+#tested
 from mysql.connector import MySQLConnection,Error,errorcode
 import datetime
 
@@ -32,17 +31,19 @@ class Tasks:
             
     
     def checkConnection(func):
+        #checks if the connection has terminated, and can be used to handle that exception,
+        # along with  any other common exceptions that are to be handled by more than 1 function
         def wrapper(self,*args,**kwargs):
             if not self.conn.is_connected():
                 raise ConnectionError("CONNECTION NO LONGER EXISTS")
             func(self,*args,**kwargs)
         return wrapper
     
-    def getTables(self):
+    def getTables(self):#returns a list of all tables in the database
         x = []
         with self.conn.cursor() as cur:
             cur.execute(f"SELECT table_name FROM information_schema.tables\
-                        WHERE table_schema='{self.conn.database}'")
+                        WHERE table_schema='{self.conn.database}'") #queries all the tables from database
             for i in cur.fetchall():
                 x.append(i[0])
                 print(i)
@@ -58,7 +59,7 @@ class Tasks:
             try:
                 with conn.cursor() as cur:
                     cur.execute(cmd)
-                x = 0
+                break
             except Error as e:
                 Err = e
                 x-=1
@@ -68,13 +69,15 @@ class Tasks:
                 #elif blocks to handle any other exceptions
                 else:
                     raise e
-        if x>0:return 0
-        else:return Err
+        else: #while else
+            return 0 #return 0 if execution occured successfully
+        return Err #return the error if execution gets stuck on "NO SUCH TABLE" error, 
+        #or you can re raise the error
 
     def addTask(self, msg:str ,priority:int = 5, dt:datetime.datetime='', folder:str=''):
-        if folder:folder = f'"{folder}"'
-        else:folder = "NULL"
-        if dt!='':dt = f'"{str(dt)}"'
+        if folder:folder = f'"{folder}"' #annoyingly enough mysql needs quotes around string
+        else:folder = "NULL"             #but quotes around "NULL" immediately makes it a string of "NULL", so this
+        if dt!='':dt = f'"{str(dt)}"' #same issue
         else: dt = 'NULL'
         self.execute(f"INSERT INTO Tasks(msg,priority,dt,folder) VALUES\
                     ('{msg}',{priority},{str(dt)},{folder})")    
@@ -104,7 +107,6 @@ class Tasks:
             self.execute(f"UPDATE Folders SET folder_name='{new_folder_name}'\
                         WHERE folder_name='{old_folder_name}'")
         self.conn.commit()
-    
     
 
 
