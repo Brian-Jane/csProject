@@ -1,8 +1,13 @@
-from untitled import *
+from TRIALS.untitled import *
 import sys
 app = QtWidgets.QApplication(sys.argv)
  
-MainWindow = QtWidgets.QMainWindow()
+class MyyMainWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super().__init__()
+    def slot1(self,b):
+        print("Yahallo",b)
+MainWindow = MyyMainWindow()
 ui = Ui_MainWindow()
 
 ui.setupUi(MainWindow)
