@@ -1,0 +1,10 @@
+1) Add task     #duh
+2) Priority
+3) Due Date
+4) Folders (Work, school, home...)
+5) Search bar   
+6) Daily/recurring tasks
+7) Custom Order
+8) Notification
+9) Pomodoro tracker
+10) Time table/ planner
