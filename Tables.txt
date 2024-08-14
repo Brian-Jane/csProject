@@ -1,0 +1,20 @@
+ TASKS table 
+ _____ _____ __________ ____ ________                 
+|slno | msg | priority | dt | Folder |
+|     |     |          |    |        |              
+|     |     |          |    |        |             
+|     |     |          |    |        |
+
+
+
+
+FOLDERS table
+ _____________ ________
+| Folder_name | Colour |
+|             |        |
+|             |        |                  
+|             |        |   
+
+
+
+
