@@ -3,32 +3,52 @@ from mysql.connector import MySQLConnection,Error,errorcode
 import datetime
 
 DEFAULT_FOLDER_COLOR =  "#888888"
+TABLE_VERSION = '1.0'
 
-CREATE_COMMAND_TASKS = "CREATE TABLE Tasks(task_id INT AUTO_INCREMENT PRIMARY KEY,\
+CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(slno INT AUTO_INCREMENT PRIMARY KEY,\
         msg varchar(100),\
-        priority INT DEFAULT(5) CHECK(priority<=10 AND priority>=1),\
+        priority INT CHECK(priority<=10 AND priority>=1),\
         dt DATETIME,\
         Folder VARCHAR(30),\
-        FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE)" #Current schema of the Tasks table
+        FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE)\
+        COMMENT '{TABLE_VERSION}'" #Current schema of the Tasks table
     
 CREATE_COMMAND_FOLDERS= f"CREATE TABLE Folders(Folder_name VARCHAR(30) PRIMARY KEY,\
-    color CHAR(7) DEFAULT('{DEFAULT_FOLDER_COLOR}'))"
+    color CHAR(7) DEFAULT('{DEFAULT_FOLDER_COLOR}'))\
+    COMMENT '{TABLE_VERSION}'"
 
 class Tasks:   
 
     def __init__(self,conn:MySQLConnection):
         self.conn = conn
         tables = self.getTables()
-        if 'folders' not in tables: #Since Folders is the parent table, it has to be created first.
-            with conn.cursor() as cur:
-                cur.execute(CREATE_COMMAND_FOLDERS)
-            conn.commit()
+        tv = fv = 0 #folder and task version
+        for i in tables:
+            print(i)
+            if i[0] == 'folders':fv = i[1]
+            elif i[0] == 'tasks':tv = i[1]
 
-        if 'tasks' not in tables:
+        if fv!=TABLE_VERSION: #Since Folders is the parent table, it has to be created first.
             with conn.cursor() as cur:
-                cur.execute(CREATE_COMMAND_TASKS)
-            conn.commit()        
-            
+                if fv!=0:#outdated table does exist, as opposed to no table at all
+                    cur.execute("RENAME TABLE Folders to TEMPFolders")                    
+                    cur.execute(CREATE_COMMAND_FOLDERS)                 
+                    cur.execute("INSERT INTO Folders SELECT * FROM TEMPFolders")
+                    cur.execute("DROP TABLE TEMPFolders")
+                else:                    
+                    cur.execute(CREATE_COMMAND_FOLDERS)
+            self.conn.commit()
+
+        if tv!=TABLE_VERSION:
+            with conn.cursor() as cur:
+                if tv!=0:#outdated table does exist, as opposed to no table at all
+                    cur.execute("RENAME TABLE Tasks to TEMPTasks")                    
+                    cur.execute(CREATE_COMMAND_TASKS)                 
+                    cur.execute("INSERT INTO Tasks SELECT * FROM TEMPTasks")
+                    cur.execute("DROP TABLE TEMPTasks")
+                else:                    
+                    cur.execute(CREATE_COMMAND_TASKS)       
+            self.conn.commit()
     
     def checkConnection(func):
         #checks if the connection has terminated, and can be used to handle that exception,
@@ -39,15 +59,11 @@ class Tasks:
             func(self,*args,**kwargs)
         return wrapper
     
-    def getTables(self):#returns a list of all tables in the database
-        x = []
+    def getTables(self):#returns a list of all tables with its versions in the database
         with self.conn.cursor() as cur:
-            cur.execute(f"SELECT table_name FROM information_schema.tables\
+            cur.execute(f"SELECT table_name, table_comment FROM information_schema.tables\
                         WHERE table_schema='{self.conn.database}'") #queries all the tables from database
-            for i in cur.fetchall():
-                x.append(i[0])
-                print(i)
-        
+            x = cur.fetchall()
         return x
 
     @checkConnection
@@ -83,12 +99,14 @@ class Tasks:
                     ('{msg}',{priority},{str(dt)},{folder})")    
         self.conn.commit()
 
-    def delTask(self, task_id:int):
-        self.execute(f"DELETE FROM Tasks WHERE task_id={task_id}")
+    def delTask(self, slno:int):
+        self.execute(f"DELETE FROM Tasks WHERE slno={slno}")
+        self.execute(f"UPDATE Tasks SET slno = slno-1 WHERE slno>{slno}") #correct the gap 
+        self.execute(f"ALTER TABLE Tasks AUTO_INCREMENT = 0") #reset auto increment
         self.conn.commit()
     
-    def updateTask(self,  task_id:int, msg:str ,priority:int = 5, dt:datetime.datetime='NULL'):
-        self.execute(f"UPDATE Tasks SET msg='{msg}',priority={priority},dt={dt} WHERE task_id={task_id}")
+    def updateTask(self,  slno:int, msg:str ,priority:int = 5, dt:datetime.datetime='NULL'):
+        self.execute(f"UPDATE Tasks SET msg='{msg}',priority={priority},dt={dt} WHERE slno={slno}")
         self.conn.commit()
 
     def addFolder(self, folder_name:str, colorhex:str = DEFAULT_FOLDER_COLOR):
@@ -107,6 +125,27 @@ class Tasks:
             self.execute(f"UPDATE Folders SET folder_name='{new_folder_name}'\
                         WHERE folder_name='{old_folder_name}'")
         self.conn.commit()
+    
+    def reorderTasks(self,slno:int,new_pos_slno:int):
+        self.execute(f"UPDATE Tasks SET slno=0 where slno={slno}")
+        if(slno > new_pos_slno):
+            self.execute(f"UPDATE Tasks SET slno=slno+1 WHERE slno BETWEEN {new_pos_slno} AND {slno} ORDER BY slno DESC")
+        else:
+            self.execute(f"UPDATE Tasks SET slno=slno-1 WHERE slno BETWEEN {slno} AND {new_pos_slno} ORDER BY slno ASC")
+        self.execute(f"UPDATE Tasks SET slno={new_pos_slno} WHERE slno=0")
+        self.conn.commit()
+    
+    def fetchall(self,order_by:str='slno',folder:str=''):
+        with self.conn.cursor() as cur:
+            if folder:
+                cur.execute(f"SELECT * FROM Tasks GROUP BY {folder} ORDER BY {order_by}")
+            else:
+                cur.execute(f"SELECT * FROM Tasks ORDER BY {order_by}")
+            r = cur.fetchall()
+        return r
+    def close(self):
+        self.conn.close()
+    
     
 
 
