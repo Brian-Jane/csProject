@@ -153,6 +153,53 @@ class Tasks:
     def close(self):
         self.conn.close()
     
+    def SearchTask(self,t):
+        cur=self.conn.cursor()
+        cur.execute(f"SELECT msg FROM Task WHERE msg='{t}'")      
+        L=cur.fetchall()        #List of tuples of tasks
+        return L
+    
+    def filter(self, Status='', DueDate:datetime.datetime=None, Priority:int=0,  Folder:int=""):
+        cur=self.conn.cursor()
+        L=[]
+        R=[]    #Random list
+        f=0
+        if DueDate: 
+            cur.execute(f"SELECT msg FROM Tasks where dt='{DueDate}' ")
+            L1=cur.fetchall()
+            self.transfer(L1,R)
+            f+=1
+
+        if Priority!=0:
+            cur.execute(f"SELECT msg FROM Tasks where priority='{Priority}' ")
+            L2=cur.fetchall()
+            self.transfer(L2,R)
+            f+=1
+
+        if Folder: 
+            cur.execute(f"SELECT msg FROM Tasks where Folder='{Folder}' ")
+            L3=cur.fetchall()
+            self.transfer(L3,R)
+            f+=1
+
+        if Status:
+            cur.execute(f"SELECT msg FROM Tasks where Status='{Status}' ")
+            L4=cur.fetchall()
+            self.transfer(L4,R)
+            f+=1
+           
+        for i in R:
+            if R.count(i)==f:
+                if i not in L:
+                    L.append(i)
+        
+        return L    #returning List of all tasks(in str) that satisfy all the criterias
+   
+    
+    def transfer(self, l1, l2):     #converting the tasks in tuple form to string form and tranferring to l2
+        for i in l1:
+            l2.append(i[0])
+        
     
 
 
