@@ -196,9 +196,10 @@ class Tasks:
         return L    #returning List of all tasks(in str) that satisfy all the criterias
    
     
-    def transfer(self, l1, l2):     #converting the tasks in tuple form to string form and tranferring to l2
+    def transfer(self, l1, l2):     #converting the tasks in tuple form to string form and tranferring to l2 
         for i in l1:
             l2.append(i[0])
+
         
     
 
