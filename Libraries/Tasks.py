@@ -10,7 +10,8 @@ CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(slno INT AUTO_INCREMENT PRIMARY KEY,
         priority INT CHECK(priority<=10 AND priority>=1),\
         dt DATETIME,\
         Folder VARCHAR(30),\
-        FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE)\
+        CONSTRAINT fkFolders \
+            FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE)\
         COMMENT '{TABLE_VERSION}'" #Current schema of the Tasks table
     
 CREATE_COMMAND_FOLDERS= f"CREATE TABLE Folders(Folder_name VARCHAR(30) PRIMARY KEY,\
@@ -27,21 +28,27 @@ class Tasks:
             print(i)
             if i[0] == 'folders':fv = i[1]
             elif i[0] == 'tasks':tv = i[1]
-
-        if fv!=TABLE_VERSION: #Since Folders is the parent table, it has to be created first.
-            with conn.cursor() as cur:
+        with conn.cursor() as cur:
+            cur.execute("DROP TABLE IF EXISTS TEMPTasks")
+            cur.execute("DROP TABLE IF EXISTS TEMPFolders")
+            if fv!=TABLE_VERSION: #Since Folders is the parent table, it has to be created first.               
                 if fv!=0:#outdated table does exist, as opposed to no table at all
                     cur.execute("RENAME TABLE Folders to TEMPFolders")                    
                     cur.execute(CREATE_COMMAND_FOLDERS)                 
                     cur.execute("INSERT INTO Folders SELECT * FROM TEMPFolders")
+                    if tv!=0:
+                        cur.execute("ALTER TABLE Tasks DROP FOREIGN KEY fkFolders")
+                        cur.execute("ALTER TABLE Tasks ADD CONSTRAINT fkFolders \
+                                    FOREIGN KEY(Folder) REFERENCES Folders(folder_name) \
+                                    ON UPDATE CASCADE ON DELETE CASCADE")
                     cur.execute("DROP TABLE TEMPFolders")
                 else:                    
                     cur.execute(CREATE_COMMAND_FOLDERS)
-            self.conn.commit()
-
-        if tv!=TABLE_VERSION:
-            with conn.cursor() as cur:
+            
+            if tv!=TABLE_VERSION:
+                
                 if tv!=0:#outdated table does exist, as opposed to no table at all
+                    cur.execute("ALTER TABLE Tasks DROP FOREIGN KEY fkFolders")
                     cur.execute("RENAME TABLE Tasks to TEMPTasks")                    
                     cur.execute(CREATE_COMMAND_TASKS)                 
                     cur.execute("INSERT INTO Tasks SELECT * FROM TEMPTasks")
@@ -49,7 +56,7 @@ class Tasks:
                 else:                    
                     cur.execute(CREATE_COMMAND_TASKS)       
             self.conn.commit()
-    
+
     def checkConnection(func):
         #checks if the connection has terminated, and can be used to handle that exception,
         # along with  any other common exceptions that are to be handled by more than 1 function
