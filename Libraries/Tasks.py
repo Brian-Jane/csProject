@@ -3,15 +3,19 @@ from mysql.connector import MySQLConnection,Error,errorcode
 import datetime
 
 DEFAULT_FOLDER_COLOR =  "#888888"
-TABLE_VERSION = '1.0'
+TABLE_VERSION = '2.0'
 
 CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(slno INT AUTO_INCREMENT PRIMARY KEY,\
         msg varchar(100),\
-        priority INT CHECK(priority<=10 AND priority>=1),\
+        priority INT,\
         dt DATETIME,\
         Folder VARCHAR(30),\
+        isCompleted BOOLEAN DEFAULT FALSE,\
+        Revivaldt DATETIME,\
         CONSTRAINT fkFolders \
             FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE)\
+        CONSTRAINT chkPriority \
+            CHECK(priority BETWEEN 1 AND 10)\
         COMMENT '{TABLE_VERSION}'" #Current schema of the Tasks table
     
 CREATE_COMMAND_FOLDERS= f"CREATE TABLE Folders(Folder_name VARCHAR(30) PRIMARY KEY,\
@@ -54,8 +58,14 @@ class Tasks:
                     cur.execute("INSERT INTO Tasks SELECT * FROM TEMPTasks")
                     cur.execute("DROP TABLE TEMPTasks")
                 else:                    
-                    cur.execute(CREATE_COMMAND_TASKS)       
+                    cur.execute(CREATE_COMMAND_TASKS) 
+            self.checkRevival(False)    
             self.conn.commit()
+
+    def checkRevival(self,commit=True):
+        with self.conn.cursor() as cur:
+            cur.execute("UPDATE Tasks SET isCompleted=FALSE WHERE NOW()>Revivaldt")
+        if commit:self.conn.commit()
 
     def checkConnection(func):
         #checks if the connection has terminated, and can be used to handle that exception,
@@ -183,7 +193,7 @@ class Tasks:
             f+=1
 
         if Status:
-            cur.execute(f"SELECT msg FROM Tasks where Status='{Status}' ")
+            cur.execute(f"SELECT msg FROM Tasks where isCompleted='{Status}' ")
             L4=cur.fetchall()
             self.transfer(L4,R)
             f+=1
