@@ -210,6 +210,22 @@ class Tasks:
         for i in l1:
             l2.append(i[0])
 
+    def modify(self, slno:int, t:str='', dt:datetime.datetime=None, Priority:int=0, Folder:str=''):
+        with self.conn.cursor() as cur:
+            Condition=[]
+            if t: 
+                Condition.append(f"msg='{t}'")
+            if dt:
+                Condition.append(f"dt='{dt}'")
+            if Priority:
+                Condition.append(f"Priority={Priority}")
+            if Folder:
+                Condition.append(f"Folder='{Folder}'")
+            Condition_str= ', '.join(Condition)
+            cur.execute(f"UPDATE Tasks SET {Condition_str} WHERE slno={slno}")
+            self.conn.commit()
+    
+
         
     
 
