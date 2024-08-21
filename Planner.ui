@@ -20,7 +20,7 @@
       <x>40</x>
       <y>30</y>
       <width>641</width>
-      <height>501</height>
+      <height>503</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="MainGrid">
@@ -207,6 +207,9 @@
          </item>
          <item>
           <widget class="QLabel" name="label_7">
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
            <property name="text">
             <string>TextLabel</string>
            </property>
@@ -225,7 +228,7 @@
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
-            <string>TextLabel</string>
+            <string>1</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
