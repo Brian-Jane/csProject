@@ -1,9 +1,9 @@
  TASKS table 
- _____ _____ __________ ____ ________                 
-|slno | msg | priority | dt | Folder |
-|     |     |          |    |        |              
-|     |     |          |    |        |             
-|     |     |          |    |        |
+ _____ _____ __________ ____ ________ _____________ ___________              
+|slno | msg | priority | dt | Folder | isCompleted | Revivaldt |
+|     |     |          |    |        |             |           |
+|     |     |          |    |        |             |           | 
+|     |     |          |    |        |             |           |          
 
 
 
@@ -15,6 +15,15 @@ FOLDERS table
 |             |        |                  
 |             |        |   
 
+
+
+EVENTS table
+ ______ _____ _____________ _______ 
+| slno | msg | Description | Edate | 
+|      |     |             |       |            
+|      |     |             |       |                         
+|      |     |             |       |         
+ 
 
 
 
