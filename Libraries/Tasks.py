@@ -285,10 +285,3 @@ class Event:
             Condition_str= ', '.join(Condition)
             cur.execute(f"UPDATE Events SET {Condition_str} WHERE slno={slno}")
             self.conn.commit()
-    
-
-
-        
-    
-
-
