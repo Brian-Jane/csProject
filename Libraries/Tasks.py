@@ -113,7 +113,7 @@ class Tasks:
         return Err #return the error if execution gets stuck on "NO SUCH TABLE" error, 
         #or you can re raise the error
 
-    def extract(self,Type:str='T'):
+    def extract(self,Type:str='T'):     
         with self.conn.cursor() as cur:
             cur.execute(f"SELECT slno, msg, priority, dt WHERE type='{Type}'")
             return cur.fetchall()
@@ -195,7 +195,7 @@ class Tasks:
             if Folder: Criteria.append(f"folder='{Folder}'")
 
             q="AND".join(Criteria)
-            cur.execute(f"SELECT * FROM Tasks WHERE {Criteria}")
+            cur.execute(f"SELECT * FROM Tasks WHERE {q}")
             return cur.fetchall()
 
     def modify(self, slno:int, task:str='', dt:datetime.datetime=None, Priority:int=0, Folder:str=''):
