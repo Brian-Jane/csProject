@@ -3,7 +3,8 @@ from mysql.connector import MySQLConnection,Error,errorcode
 import datetime
 
 DEFAULT_FOLDER_COLOR =  "#888888"
-TABLE_VERSION = '2.0'
+TABLE_VERSION = '1.0'
+EVENT_TABLE_VERSION= '1.0'
 
 CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(slno INT AUTO_INCREMENT PRIMARY KEY,\
         msg varchar(100),\
@@ -12,15 +13,20 @@ CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(slno INT AUTO_INCREMENT PRIMARY KEY,
         Folder VARCHAR(30),\
         isCompleted BOOLEAN DEFAULT FALSE,\
         Revivaldt DATETIME,\
+        CHECK (priority BETWEEN 1 AND 10),\
         CONSTRAINT fkFolders \
-            FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE)\
-        CONSTRAINT chkPriority \
-            CHECK(priority BETWEEN 1 AND 10)\
+            FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE) \
         COMMENT '{TABLE_VERSION}'" #Current schema of the Tasks table
     
 CREATE_COMMAND_FOLDERS= f"CREATE TABLE Folders(Folder_name VARCHAR(30) PRIMARY KEY,\
     color CHAR(7) DEFAULT('{DEFAULT_FOLDER_COLOR}'))\
     COMMENT '{TABLE_VERSION}'"
+
+CREATE_COMMAND_EVENTS= f"CREATE TABLE Events(slno int AUTO_INCREMENT primary key , \
+        msg varchar(20)), \
+        description varchar(100), \
+        Edate datetime)\
+        COMMENT '{EVENT_TABLE_VERSION}'"
 
 class Tasks:   
 
@@ -107,6 +113,11 @@ class Tasks:
         return Err #return the error if execution gets stuck on "NO SUCH TABLE" error, 
         #or you can re raise the error
 
+    def extract(self,Type:str='T'):
+        with self.conn.cursor() as cur:
+            cur.execute(f"SELECT slno, msg, priority, dt WHERE type='{Type}'")
+            return cur.fetchall()
+
     def addTask(self, msg:str ,priority:int = 5, dt:datetime.datetime='', folder:str=''):
         if folder:folder = f'"{folder}"' #annoyingly enough mysql needs quotes around string
         else:folder = "NULL"             #but quotes around "NULL" immediately makes it a string of "NULL", so this
@@ -160,6 +171,12 @@ class Tasks:
                 cur.execute(f"SELECT * FROM Tasks ORDER BY {order_by}")
             r = cur.fetchall()
         return r
+    
+    def fetchFolders(self):
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT * FROM Folders")
+            return cur.fetchall()
+        
     def close(self):
         self.conn.close()
     
@@ -170,51 +187,22 @@ class Tasks:
             return L
     
     def filter(self, Status='', DueDate:datetime.datetime=None, Priority:int=0,  Folder:int=""):
+        Criteria=[]
         with self.conn.cursor() as cur:
-            L=[]
-            R=[]    #Random list
-            f=0
-            if DueDate: 
-                cur.execute(f"SELECT msg FROM Tasks where dt='{DueDate}' ")
-                L1=cur.fetchall()
-                self.transfer(L1,R)
-                f+=1
+            if Status!='': Criteria.append(f"status='{Status}'")
+            if DueDate: Criteria.append(f"dt='{DueDate}'")
+            if Priority: Criteria.append(f"priority={Priority}")
+            if Folder: Criteria.append(f"folder='{Folder}'")
 
-            if Priority!=0:
-                cur.execute(f"SELECT msg FROM Tasks where priority='{Priority}' ")
-                L2=cur.fetchall()
-                self.transfer(L2,R)
-                f+=1
+            q="AND".join(Criteria)
+            cur.execute(f"SELECT * FROM Tasks WHERE {Criteria}")
+            return cur.fetchall()
 
-            if Folder: 
-                cur.execute(f"SELECT msg FROM Tasks where Folder='{Folder}' ")
-                L3=cur.fetchall()
-                self.transfer(L3,R)
-                f+=1
-
-            if Status:
-                cur.execute(f"SELECT msg FROM Tasks where isCompleted='{Status}' ")
-                L4=cur.fetchall()
-                self.transfer(L4,R)
-                f+=1
-           
-            for i in R:
-                if R.count(i)==f:
-                    if i not in L:
-                        L.append(i)
-        
-        return L    #returning List of all tasks(in str) that satisfy all the criterias
-   
-    
-    def transfer(self, l1, l2):     #converting the tasks in tuple form to string form and tranferring to l2 
-        for i in l1:
-            l2.append(i[0])
-
-    def modify(self, slno:int, t:str='', dt:datetime.datetime=None, Priority:int=0, Folder:str=''):
+    def modify(self, slno:int, task:str='', dt:datetime.datetime=None, Priority:int=0, Folder:str=''):
         with self.conn.cursor() as cur:
             Condition=[]
-            if t: 
-                Condition.append(f"msg='{t}'")
+            if task: 
+                Condition.append(f"msg='{task}'")
             if dt:
                 Condition.append(f"dt='{dt}'")
             if Priority:
@@ -224,7 +212,81 @@ class Tasks:
             Condition_str= ', '.join(Condition)
             cur.execute(f"UPDATE Tasks SET {Condition_str} WHERE slno={slno}")
             self.conn.commit()
+
     
+
+class Event:
+    def __init__(self, conn:MySQLConnection):
+        self.conn=conn
+        with conn.cursor() as cur:
+            tables = self.getTables()
+            ev = 0
+            for i in tables:
+                if i[0]=='events':ev=i[1]
+            if ev!=EVENT_TABLE_VERSION:
+                if ev!=0:
+                    cur.execute("RENAME TABLE Events to TEMPEvents")                    
+                    cur.execute(CREATE_COMMAND_EVENTS)                 
+                    cur.execute("INSERT INTO Events SELECT * FROM TEMPEvents")
+                    cur.execute("DROP TABLE TEMPEvents")
+                else:                    
+                    cur.execute(CREATE_COMMAND_EVENTS)
+
+            cur.execute(CREATE_COMMAND_EVENTS)
+        conn.commit()
+
+    def getTables(self):#returns a list of all tables with its versions in the database
+        with self.conn.cursor() as cur:
+            cur.execute(f"SELECT table_name, table_comment FROM information_schema.tables\
+                        WHERE table_schema='{self.conn.database}'") #queries all the tables from database
+            x = cur.fetchall()
+        return x
+    
+    def execute(self,query):
+        with self.conn.cursor() as cur:
+            cur.execute(query)
+    
+    def addEvents(self, msg:str ,priority:int = 5, dt:datetime.datetime='', folder:str=''):
+        if folder:folder = f'"{folder}"' #annoyingly enough mysql needs quotes around string
+        else:folder = "NULL"             #but quotes around "NULL" immediately makes it a string of "NULL", so this
+        if dt!='':dt = f'"{str(dt)}"' #same issue
+        else: dt = 'NULL'
+        self.execute(f"INSERT INTO Events(msg,priority,dt,folder) VALUES\
+                    ('{msg}',{priority},{str(dt)},{folder})")    
+        self.conn.commit()
+
+    def delEvents(self, slno:int):
+        self.execute(f"DELETE FROM Events WHERE slno={slno}")
+        self.execute(f"UPDATE Events SET slno = slno-1 WHERE slno>{slno}") #correct the gap 
+        self.execute(f"ALTER TABLE Events AUTO_INCREMENT = 0") #reset auto increment
+        self.conn.commit()
+    
+    def updateEvents(self,  slno:int, msg:str ,priority:int = 5, dt:datetime.datetime='NULL'):
+        self.execute(f"UPDATE Events SET msg='{msg}',priority={priority},dt={dt} WHERE slno={slno}")
+        self.conn.commit()
+
+    def reorderEvents(self,slno:int,new_pos_slno:int):
+        self.execute(f"UPDATE Events SET slno=0 where slno={slno}")
+        if(slno > new_pos_slno):
+            self.execute(f"UPDATE Events SET slno=slno+1 WHERE slno BETWEEN {new_pos_slno} AND {slno} ORDER BY slno DESC")
+        else:
+            self.execute(f"UPDATE Events SET slno=slno-1 WHERE slno BETWEEN {slno} AND {new_pos_slno} ORDER BY slno ASC")
+        self.execute(f"UPDATE Events SET slno={new_pos_slno} WHERE slno=0")
+        self.conn.commit()
+    
+    def modify(self, slno:int, event:str='', dt:datetime.datetime=None):
+        with self.conn.cursor() as cur:
+            Condition=[]
+            if event: 
+                Condition.append(f"msg='{event}'")
+            if dt:
+                Condition.append(f"dt='{dt}'")
+
+            Condition_str= ', '.join(Condition)
+            cur.execute(f"UPDATE Events SET {Condition_str} WHERE slno={slno}")
+            self.conn.commit()
+    
+
 
         
     
