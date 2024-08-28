@@ -3,7 +3,7 @@ from mysql.connector import MySQLConnection,Error,errorcode
 import datetime
 
 DEFAULT_FOLDER_COLOR =  "#888888"
-TABLE_VERSION = '1.0'
+TABLE_VERSION = '2.0'
 EVENT_TABLE_VERSION= '1.0'
 
 CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(slno INT AUTO_INCREMENT PRIMARY KEY,\
@@ -13,14 +13,16 @@ CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(slno INT AUTO_INCREMENT PRIMARY KEY,
         Folder VARCHAR(30),\
         isCompleted BOOLEAN DEFAULT FALSE,\
         Revivaldt DATETIME,\
+        RevInterval INT,\
         CHECK (priority BETWEEN 1 AND 10),\
         CONSTRAINT fkFolders \
-            FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE) \
+            FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE)\
         COMMENT '{TABLE_VERSION}'" #Current schema of the Tasks table
     
 CREATE_COMMAND_FOLDERS= f"CREATE TABLE Folders(Folder_name VARCHAR(30) PRIMARY KEY,\
     color CHAR(7) DEFAULT('{DEFAULT_FOLDER_COLOR}'))\
     COMMENT '{TABLE_VERSION}'"
+
 
 CREATE_COMMAND_EVENTS= f"CREATE TABLE Events(slno int AUTO_INCREMENT primary key , \
         msg varchar(20)), \
@@ -118,13 +120,29 @@ class Tasks:
             cur.execute(f"SELECT slno, msg, priority, dt WHERE type='{Type}'")
             return cur.fetchall()
 
-    def addTask(self, msg:str ,priority:int = 5, dt:datetime.datetime='', folder:str=''):
-        if folder:folder = f'"{folder}"' #annoyingly enough mysql needs quotes around string
-        else:folder = "NULL"             #but quotes around "NULL" immediately makes it a string of "NULL", so this
-        if dt!='':dt = f'"{str(dt)}"' #same issue
-        else: dt = 'NULL'
-        self.execute(f"INSERT INTO Tasks(msg,priority,dt,folder) VALUES\
-                    ('{msg}',{priority},{str(dt)},{folder})")    
+    def completeTask(self,slno:int):
+        with self.conn.cursor() as cur:
+            cur.execute(f"SELECT RevInterval FROM Tasks WHERE slno={slno}")
+            L = cur.fetchall()
+            assert len(L) == 1
+            if L[0][0]!=None:
+                Revivaldt = datetime.datetime.now() + datetime.timedelta(seconds=L[0][0])
+                cur.execute(f"UPDATE Tasks SET Revivaldt='{Revivaldt}' WHERE slno={slno}")
+            cur.execute(f"UPDATE Tasks SET isCompleted=TRUE WHERE slno={slno}")
+        self.conn.commit()
+
+    def addTask(self, msg: str, priority: int = 5, dt: datetime.datetime = None, folder: str = None, ReviveInterval: int = None):
+        # Prepare the SQL statement with placeholders
+        with self.conn.cursor() as cur:
+            sql = """
+            INSERT INTO Tasks (msg, priority, dt, folder, RevInterval)
+            VALUES (%s, %s, %s, %s, %s)
+            """            
+            # Prepare the values to be inserted
+            values = (msg, priority, dt, folder, ReviveInterval)
+            
+            # Execute the query with parameters
+            cur.execute(sql, values)
         self.conn.commit()
 
     def delTask(self, slno:int):
