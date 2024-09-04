@@ -5,6 +5,7 @@ import datetime
 DEFAULT_FOLDER_COLOR =  "#888888"
 TABLE_VERSION = '2.0'
 EVENT_TABLE_VERSION= '1.0'
+REV_TABLE_VERSION = '1.0'
 
 CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(slno INT AUTO_INCREMENT PRIMARY KEY,\
         msg varchar(100),\
@@ -12,17 +13,25 @@ CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(slno INT AUTO_INCREMENT PRIMARY KEY,
         dt DATETIME,\
         Folder VARCHAR(30),\
         isCompleted BOOLEAN DEFAULT FALSE,\
-        Revivaldt DATETIME,\
-        RevInterval INT,\
+        RevId INT,\
         CHECK (priority BETWEEN 1 AND 10),\
         CONSTRAINT fkFolders \
-            FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE)\
+            FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE\
+        CONSTRAINT fkRev\
+            FOREIGN KEY(RevId) REFERENCES RevT(RevId) ON DELETE CASCADE ON UPDATE CASCADE)\
         COMMENT '{TABLE_VERSION}'" #Current schema of the Tasks table
     
 CREATE_COMMAND_FOLDERS= f"CREATE TABLE Folders(Folder_name VARCHAR(30) PRIMARY KEY,\
     color CHAR(7) DEFAULT('{DEFAULT_FOLDER_COLOR}'))\
     COMMENT '{TABLE_VERSION}'"
 
+
+CREATE_COMMAND_REVT=f"CREATE TABLE REVT (RevId INT AUTO_INCERMENT PRIMARY KEY, \
+    Revivaldt DATETIME, \
+    RevivalInterval INT,\
+    RevivalType CHAR(1)\
+    DOC DATETIME)\
+    COMMENT'{REV_TABLE_VERSION}'"
 
 CREATE_COMMAND_EVENTS= f"CREATE TABLE Events(slno int AUTO_INCREMENT primary key , \
         msg varchar(20)), \
@@ -151,7 +160,7 @@ class Tasks:
         self.execute(f"ALTER TABLE Tasks AUTO_INCREMENT = 0") #reset auto increment
         self.conn.commit()
     
-    def updateTask(self,  slno:int, msg:str ,priority:int = 5, dt:datetime.datetime='NULL'):
+    def updateTask(self,  slno:int, msg:str ,priority:int = '', dt:datetime.datetime='NULL'):
         self.execute(f"UPDATE Tasks SET msg='{msg}',priority={priority},dt={dt} WHERE slno={slno}")
         self.conn.commit()
 
