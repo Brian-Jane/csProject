@@ -39,6 +39,7 @@ CREATE_COMMAND_EVENTS= f"CREATE TABLE Events(slno int AUTO_INCREMENT primary key
         Edate datetime)\
         COMMENT '{EVENT_TABLE_VERSION}'"
 
+default_value = object()
 class Tasks:   
 
     def __init__(self,conn:MySQLConnection):
@@ -160,9 +161,17 @@ class Tasks:
         self.execute(f"ALTER TABLE Tasks AUTO_INCREMENT = 0") #reset auto increment
         self.conn.commit()
     
-    def updateTask(self,  slno:int, msg:str ,priority:int = '', dt:datetime.datetime='NULL'):
-        self.execute(f"UPDATE Tasks SET msg='{msg}',priority={priority},dt={dt} WHERE slno={slno}")
-        self.conn.commit()
+    def updateTask(self,  slno:int, **kwargs):
+        q = "UPDATE Tasks SET "
+        Lq = Lv  = []
+        for column,value in kwargs:
+            if column not in ['msg','priority','dt','Folder']:
+                raise ValueError(f"'{column}' is an unknown column")    
+            Lq.append(f'{column}=%s')
+            Lv.append(value)
+        query  = q + ','.join(Lq) + "WHERE slno=%s"
+        Lv.append(slno)
+        self.execute(query,Lv)
 
     def addFolder(self, folder_name:str, colorhex:str = DEFAULT_FOLDER_COLOR):
         self.execute(f"INSERT INTO Folders(Folder_name,color) VALUES('{folder_name}', '{colorhex}')")
@@ -224,21 +233,6 @@ class Tasks:
             q="AND".join(Criteria)
             cur.execute(f"SELECT * FROM Tasks WHERE {q}")
             return cur.fetchall()
-
-    def modify(self, slno:int, task:str='', dt:datetime.datetime=None, Priority:int=0, Folder:str=''):
-        with self.conn.cursor() as cur:
-            Condition=[]
-            if task: 
-                Condition.append(f"msg='{task}'")
-            if dt:
-                Condition.append(f"dt='{dt}'")
-            if Priority:
-                Condition.append(f"Priority={Priority}")
-            if Folder:
-                Condition.append(f"Folder='{Folder}'")
-            Condition_str= ', '.join(Condition)
-            cur.execute(f"UPDATE Tasks SET {Condition_str} WHERE slno={slno}")
-            self.conn.commit()
 
     
 
