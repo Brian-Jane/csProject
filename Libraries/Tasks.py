@@ -7,18 +7,16 @@ TABLE_VERSION = '2.0'
 EVENT_TABLE_VERSION= '1.0'
 REV_TABLE_VERSION = '1.0'
 
-CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(slno INT AUTO_INCREMENT PRIMARY KEY,\
+CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(ID INT AUTO_INCREMENT PRIMARY KEY,\
+        slno INT AUTO_INCREMENT,\
         msg varchar(100),\
         priority INT,\
         dt DATETIME,\
         Folder VARCHAR(30),\
         isCompleted BOOLEAN DEFAULT FALSE,\
-        RevId INT,\
         CHECK (priority BETWEEN 1 AND 10),\
         CONSTRAINT fkFolders \
-            FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE\
-        CONSTRAINT fkRev\
-            FOREIGN KEY(RevId) REFERENCES RevT(RevId) ON DELETE CASCADE ON UPDATE CASCADE)\
+            FOREIGN KEY(Folder) REFERENCES Folders(folder_name) ON DELETE CASCADE ON UPDATE CASCADE)\
         COMMENT '{TABLE_VERSION}'" #Current schema of the Tasks table
     
 CREATE_COMMAND_FOLDERS= f"CREATE TABLE Folders(Folder_name VARCHAR(30) PRIMARY KEY,\
@@ -26,11 +24,13 @@ CREATE_COMMAND_FOLDERS= f"CREATE TABLE Folders(Folder_name VARCHAR(30) PRIMARY K
     COMMENT '{TABLE_VERSION}'"
 
 
-CREATE_COMMAND_REVT=f"CREATE TABLE REVT (RevId INT AUTO_INCERMENT PRIMARY KEY, \
+CREATE_COMMAND_REVT=f"CREATE TABLE REVT (ID INT PRIMARY KEY, \
     Revivaldt DATETIME, \
     RevivalInterval INT,\
     RevivalType CHAR(1)\
-    DOC DATETIME)\
+    DOC DATETIME DEFAULT NOW(),\
+    CONSTRAINT fkTasks \
+        FOREIGN KEY(ID) REFERENCES Tasks(ID) ON DELETE CASCADE ON UPDATE CASCADE)\
     COMMENT'{REV_TABLE_VERSION}'"
 
 CREATE_COMMAND_EVENTS= f"CREATE TABLE Events(slno int AUTO_INCREMENT primary key , \
@@ -45,11 +45,12 @@ class Tasks:
     def __init__(self,conn:MySQLConnection):
         self.conn = conn
         tables = self.getTables()
-        tv = fv = 0 #folder and task version
+        tv = fv = rv = 0 #folder and task version
         for i in tables:
             print(i)
             if i[0] == 'folders':fv = i[1]
             elif i[0] == 'tasks':tv = i[1]
+            elif i[0] == 'revt':rv = i[1]
         with conn.cursor() as cur:
             cur.execute("DROP TABLE IF EXISTS TEMPTasks")
             cur.execute("DROP TABLE IF EXISTS TEMPFolders")
@@ -74,9 +75,25 @@ class Tasks:
                     cur.execute("RENAME TABLE Tasks to TEMPTasks")                    
                     cur.execute(CREATE_COMMAND_TASKS)                 
                     cur.execute("INSERT INTO Tasks SELECT * FROM TEMPTasks")
+                    if rv!=0:
+                        cur.execute("ALTER TABLE RevT DROP FOREIGN KEY fkTasks")
+                        cur.execute("ALTER TABLE RevT ADD CONSTRAINT fkTasks \
+                                    FOREIGN KEY(ID) REFERENCES Tasks(ID) \
+                                    ON UPDATE CASCADE ON DELETE CASCADE")
+                        
                     cur.execute("DROP TABLE TEMPTasks")
                 else:                    
                     cur.execute(CREATE_COMMAND_TASKS) 
+            
+            if rv!=REV_TABLE_VERSION:
+                if rv!=0:
+                    cur.execute("ALTER TABLE RevT DROP FOREIGN KEY fkTasks")
+                    cur.execute("RENAME TABLE RevT to TEMPRevT")                    
+                    cur.execute(CREATE_COMMAND_REVT)                 
+                    cur.execute("INSERT INTO RevT SELECT * FROM TEMPRevT")
+                    cur.execute("DROP TABLE TEMPRevT")
+                else:                    
+                    cur.execute(CREATE_COMMAND_REVT) 
             self.checkRevival(False)    
             self.conn.commit()
 
