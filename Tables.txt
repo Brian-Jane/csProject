@@ -1,9 +1,9 @@
  TASKS table 
- _____ _____ __________ ____ ________ _____________ ___________ _____________            
-|slno | msg | priority | dt | Folder | isCompleted | Revivaldt | RevInterval |
-|     |     |          |    |        |             |           |             |               
-|     |     |          |    |        |             |           |             |                         
-|     |     |          |    |        |             |           |             |                                    
+ _____ _____ __________ ____ ________ _____________ _______            
+|slno | msg | priority | dt | Folder | isCompleted | RevId |
+|     |     |          |    |        |             |       |               
+|     |     |          |    |        |             |       |                         
+|     |     |          |    |        |             |       |                                   
 
 
 
