@@ -27,11 +27,11 @@ CREATE_COMMAND_FOLDERS= f"CREATE TABLE Folders(Folder_name VARCHAR(30) PRIMARY K
 CREATE_COMMAND_REVT=f"CREATE TABLE REVT (ID INT PRIMARY KEY, \
     Revivaldt DATETIME, \
     RevivalInterval INT,\
-    RevivalType CHAR(1)\
+    RevivalType CHAR(1)\   
     DOC DATETIME DEFAULT NOW(),\
     CONSTRAINT fkTasks \
         FOREIGN KEY(ID) REFERENCES Tasks(ID) ON DELETE CASCADE ON UPDATE CASCADE)\
-    COMMENT'{REV_TABLE_VERSION}'"
+    COMMENT'{REV_TABLE_VERSION}'"   #RevivalType= "A/a" or "E/e"    DOC--> Date Of Creation
 
 CREATE_COMMAND_EVENTS= f"CREATE TABLE Events(slno int AUTO_INCREMENT primary key , \
         msg varchar(20)), \
@@ -149,13 +149,19 @@ class Tasks:
 
     def completeTask(self,slno:int):
         with self.conn.cursor() as cur:
-            cur.execute(f"SELECT RevInterval FROM Tasks WHERE slno={slno}")
+            cur.execute(f"SELECT RevInterval, RevivalType FROM Tasks WHERE slno={slno}")
             L = cur.fetchall()
-            assert len(L) == 1
+            assert len(L) == 2
             if L[0][0]!=None:
-                Revivaldt = datetime.datetime.now() + datetime.timedelta(seconds=L[0][0])
-                cur.execute(f"UPDATE Tasks SET Revivaldt='{Revivaldt}' WHERE slno={slno}")
+                if L[0][1].lower()=="a":
+                    self.afunc(slno, L[0][0])
             cur.execute(f"UPDATE Tasks SET isCompleted=TRUE WHERE slno={slno}")
+        self.conn.commit()
+
+    def afunc(self, slno:int, RevivalInterval:int):
+        Revivaldt = datetime.datetime.now() + datetime.timedelta(seconds=RevivalInterval)
+        with self.conn.cursor() as cur:
+            cur.execute(f"UPDATE Tasks SET Revivaldt='{Revivaldt}' WHERE slno={slno}")
         self.conn.commit()
 
     def addTask(self, msg: str, priority: int = 5, dt: datetime.datetime = None, folder: str = None, ReviveInterval: int = None):
@@ -170,7 +176,29 @@ class Tasks:
             
             # Execute the query with parameters
             cur.execute(sql, values)
+
+            if ReviveInterval:
+                cur.execute("SELECT ID, Doc, RevivalInterval from Tasks")
+                L=cur.fetchall()
+                ID=L[-1][0]
+                DOC=L[-1][1]
+                RevivalInterval=L[-1][2]
+                cur.execute(f"SELECT RevivalType from RevT WHERE ID={ID}")
+                if cur.fetchall()[0][0].lower()=="e":
+                    self.efunc(ID, DOC, RevivalInterval)
         self.conn.commit()
+
+    def efunc(self, ID:int, DOC:datetime.datetime, RevivalInterval:int):
+        base=DOC
+        while True:
+            revdt= base + datetime.timedelta(seconds=RevivalInterval)
+            if datetime.datetime.now()>=revdt:
+                with self.conn.cursor() as cur:
+                    cur.execute(f"SELECT isCompleted from tasks WHERE ID={ID}")
+                    if cur.fetchall()[0][0]:
+                        cur.execute(f"UPDATE Tasks set isCompleted = FALSE WHERE ID ={ID}")
+                    base = revdt
+            self.conn.commit()
 
     def delTask(self, slno:int):
         self.execute(f"DELETE FROM Tasks WHERE slno={slno}")
