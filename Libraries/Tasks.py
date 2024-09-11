@@ -1,14 +1,15 @@
 #tested
 from mysql.connector import MySQLConnection,Error,errorcode
 import datetime
+import threading
 
 DEFAULT_FOLDER_COLOR =  "#888888"
-TABLE_VERSION = '2.0'
+TABLE_VERSION = '1.0'
 EVENT_TABLE_VERSION= '1.0'
 REV_TABLE_VERSION = '1.0'
 
-CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(ID INT AUTO_INCREMENT PRIMARY KEY,\
-        slno INT AUTO_INCREMENT,\
+CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(ID INT PRIMARY KEY,\
+        slno INT AUTO_INCREMENT UNIQUE,\
         msg varchar(100),\
         priority INT,\
         dt DATETIME,\
@@ -20,18 +21,25 @@ CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(ID INT AUTO_INCREMENT PRIMARY KEY,\
         COMMENT '{TABLE_VERSION}'" #Current schema of the Tasks table
     
 CREATE_COMMAND_FOLDERS= f"CREATE TABLE Folders(Folder_name VARCHAR(30) PRIMARY KEY,\
-    color CHAR(7) DEFAULT('{DEFAULT_FOLDER_COLOR}'))\
+    color CHAR(7) DEFAULT '{DEFAULT_FOLDER_COLOR}' )\
     COMMENT '{TABLE_VERSION}'"
 
 
-CREATE_COMMAND_REVT=f"CREATE TABLE REVT (ID INT PRIMARY KEY, \
-    Revivaldt DATETIME, \
-    RevivalInterval INT,\
-    RevivalType CHAR(1)\   
-    DOC DATETIME DEFAULT NOW(),\
-    CONSTRAINT fkTasks \
-        FOREIGN KEY(ID) REFERENCES Tasks(ID) ON DELETE CASCADE ON UPDATE CASCADE)\
-    COMMENT'{REV_TABLE_VERSION}'"   #RevivalType= "A/a" or "E/e"    DOC--> Date Of Creation
+REV_TABLE_VERSION = "1.0"  # Define this variable as needed
+
+CREATE_COMMAND_REVT = f"""
+CREATE TABLE REVT (
+    ID INT,
+    Revivaldt DATETIME,
+    RevivalInterval INT,
+    RevivalType CHAR(1),
+    DOC DATETIME DEFAULT NOW(),
+    CONSTRAINT fkTasks
+        FOREIGN KEY(ID) REFERENCES Tasks(ID) ON DELETE CASCADE ON UPDATE CASCADE
+)
+COMMENT '{REV_TABLE_VERSION}'
+"""
+  #RevivalType= "A/a" or "E/e"    DOC--> Date Of Creation
 
 CREATE_COMMAND_EVENTS= f"CREATE TABLE Events(slno int AUTO_INCREMENT primary key , \
         msg varchar(20)), \
@@ -93,15 +101,10 @@ class Tasks:
                     cur.execute("INSERT INTO RevT SELECT * FROM TEMPRevT")
                     cur.execute("DROP TABLE TEMPRevT")
                 else:                    
-                    cur.execute(CREATE_COMMAND_REVT) 
-            self.checkRevival(False)    
+                    cur.execute(CREATE_COMMAND_REVT)
             self.conn.commit()
 
-    def checkRevival(self,commit=True):
-        with self.conn.cursor() as cur:
-            cur.execute("UPDATE Tasks SET isCompleted=FALSE WHERE NOW()>Revivaldt")
-        if commit:self.conn.commit()
-
+    
     def checkConnection(func):
         #checks if the connection has terminated, and can be used to handle that exception,
         # along with  any other common exceptions that are to be handled by more than 1 function
@@ -119,14 +122,16 @@ class Tasks:
         return x
 
     @checkConnection
-    def execute(self, cmd:str):
+    def execute(self, cmd:str,values=()):
         conn = self.conn
         x = 2 #x number of re-tries
         Err = 0
         while x>0:
             try:
                 with conn.cursor() as cur:
-                    cur.execute(cmd)
+                    if values:
+                        print(cmd,values)
+                    cur.execute(cmd,values)
                 break
             except Error as e:
                 Err = e
@@ -147,59 +152,82 @@ class Tasks:
             cur.execute(f"SELECT slno, msg, priority, dt WHERE type='{Type}'")
             return cur.fetchall()
 
-    def completeTask(self,slno:int):
+    def completeTask(self,ID:int):
         with self.conn.cursor() as cur:
-            cur.execute(f"SELECT RevInterval, RevivalType FROM Tasks WHERE slno={slno}")
+            cur.execute(f"SELECT RevivalInterval, RevivalType FROM RevT WHERE ID={ID}")
             L = cur.fetchall()
-            assert len(L) == 2
             if L[0][0]!=None:
                 if L[0][1].lower()=="a":
-                    self.afunc(slno, L[0][0])
-            cur.execute(f"UPDATE Tasks SET isCompleted=TRUE WHERE slno={slno}")
+                    self.afunc(ID, L[0][0])
+            cur.execute(f"UPDATE Tasks SET isCompleted=TRUE WHERE ID={ID}")
         self.conn.commit()
 
-    def afunc(self, slno:int, RevivalInterval:int):
+    def afunc(self, ID:int, RevivalInterval:int):
         Revivaldt = datetime.datetime.now() + datetime.timedelta(seconds=RevivalInterval)
         with self.conn.cursor() as cur:
-            cur.execute(f"UPDATE Tasks SET Revivaldt='{Revivaldt}' WHERE slno={slno}")
+            cur.execute(f"UPDATE Tasks SET Revivaldt='{Revivaldt}' WHERE slno={ID}")
         self.conn.commit()
 
-    def addTask(self, msg: str, priority: int = 5, dt: datetime.datetime = None, folder: str = None, ReviveInterval: int = None):
+    def addTask(self, msg: str, priority: int = 5, dt: datetime.datetime = None, folder: str = None,
+                ReviveInterval: int = None, Revivaldt:datetime.datetime=None, RevivalType:str = 'e' ):
         # Prepare the SQL statement with placeholders
+        # Revivaldt must not be given for Recurring functions
         with self.conn.cursor() as cur:
             sql = """
-            INSERT INTO Tasks (msg, priority, dt, folder, RevInterval)
+            INSERT INTO Tasks (ID,msg, priority, dt, folder)
             VALUES (%s, %s, %s, %s, %s)
             """            
             # Prepare the values to be inserted
-            values = (msg, priority, dt, folder, ReviveInterval)
-            
+            ID = self._genID()
+            values = (ID,msg, priority, dt, folder)
+            cur.execute("SELECT msg from Tasks")
+            if (msg,) in cur.fetchall(): 
+                print("Don't repeat tasks")
+                return None
             # Execute the query with parameters
             cur.execute(sql, values)
-
-            if ReviveInterval:
-                cur.execute("SELECT ID, Doc, RevivalInterval from Tasks")
-                L=cur.fetchall()
-                ID=L[-1][0]
-                DOC=L[-1][1]
-                RevivalInterval=L[-1][2]
-                cur.execute(f"SELECT RevivalType from RevT WHERE ID={ID}")
-                if cur.fetchall()[0][0].lower()=="e":
-                    self.efunc(ID, DOC, RevivalInterval)
-        self.conn.commit()
-
-    def efunc(self, ID:int, DOC:datetime.datetime, RevivalInterval:int):
-        base=DOC
-        while True:
-            revdt= base + datetime.timedelta(seconds=RevivalInterval)
-            if datetime.datetime.now()>=revdt:
-                with self.conn.cursor() as cur:
-                    cur.execute(f"SELECT isCompleted from tasks WHERE ID={ID}")
-                    if cur.fetchall()[0][0]:
-                        cur.execute(f"UPDATE Tasks set isCompleted = FALSE WHERE ID ={ID}")
-                    base = revdt
             self.conn.commit()
 
+            if ReviveInterval:
+                if dt: print("Please don't give deadline for a recureing function :)")
+                DOC= datetime.datetime.now()
+                revdt= datetime.datetime.now() + datetime.timedelta(seconds=ReviveInterval)
+                cur.execute("INSERT INTO RevT(ID,Revivaldt,RevivalType, RevivalInterval, Doc) \
+                            VALUES(%s,%s, %s, %s,%s)",(ID,revdt,RevivalType, ReviveInterval,DOC)) 
+            self.conn.commit()
+    def _genID(self):
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT ID FROM Tasks")
+            idList = cur.fetchall()
+            if (1,) not in idList: return 1
+            for (i,) in idList:
+                if (i+1,) not in idList:
+                    return i+1
+            raise Exception("BRUHHH")
+                
+    def efunc(self):        #This function MUST be called whenever the application is opened
+        with self.conn.cursor() as cur:
+#                                0        1             2              3        4                 
+            cur.execute("SELECT T.ID, Revivaldt, RevivalInterval, iscompleted, DOC FROM RevT R, Tasks T WHERE \
+                        R.ID=T.ID AND (RevivalType= 'E' OR RevivalType='e')")
+            rows=cur.fetchall()
+            for i in rows:
+                now=datetime.datetime.now()
+                DOC= i[4]
+                revdt=i[1]
+                if now>=revdt:
+                    self._ecompleted(i[0],i[1],i[2],i[3])
+
+    def _ecompleted(self, ID:int, Revivaldt:datetime.datetime, RevivalInterval:int, iscompleted:bool):
+        with self.conn.cursor() as cur:
+            if iscompleted:
+                cur.execute("UPDATE Tasks SET iscompleted=False WHERE ID=%s",(ID,))
+                self.conn.commit()
+            revdt= Revivaldt + datetime.timedelta(seconds=RevivalInterval)
+            cur.execute("UPDATE RevT SET Revivaldt=%s WHERE ID=%s",(revdt, ID))
+
+
+            
     def delTask(self, slno:int):
         self.execute(f"DELETE FROM Tasks WHERE slno={slno}")
         self.execute(f"UPDATE Tasks SET slno = slno-1 WHERE slno>{slno}") #correct the gap 
@@ -207,17 +235,27 @@ class Tasks:
         self.conn.commit()
     
     def updateTask(self,  slno:int, **kwargs):
-        q = "UPDATE Tasks SET "
-        Lq = Lv  = []
-        for column,value in kwargs:
+        q1 = "UPDATE Tasks SET "
+        q2 = "UPDATE RevT SET"
+        Lq1,Lq2,Lv1,Lv2 = [],[],[],[]
+        for column in kwargs:
             if column not in ['msg','priority','dt','Folder']:
-                raise ValueError(f"'{column}' is an unknown column")    
-            Lq.append(f'{column}=%s')
-            Lv.append(value)
-        query  = q + ','.join(Lq) + "WHERE slno=%s"
-        Lv.append(slno)
-        self.execute(query,Lv)
-
+                raise ValueError(f"'{column}' is an unknown column")
+            
+            if column in ['msg','priority','dt','Folder']:
+                Lq1.append(f'{column}=%s')
+                Lv1.append(kwargs[column])
+            if column in ['RevivalInterval', 'RevivalType']: 
+                Lq2.append(f'{column}=%s')
+                Lv2.append(kwargs[column])
+            
+        query1  = q1 + ','.join(Lq1) + "WHERE slno=%s"
+        query2 = q2 + ','.join(Lq2) + "WHERE slno=%s"
+        Lv1.append(slno)
+        Lv2.append(slno)
+        if Lv1[1:]:self.execute(query1,Lv1)
+        if Lv2[1:]:self.execute(query2,Lv2)
+        self.conn.commit()
     def addFolder(self, folder_name:str, colorhex:str = DEFAULT_FOLDER_COLOR):
         self.execute(f"INSERT INTO Folders(Folder_name,color) VALUES('{folder_name}', '{colorhex}')")
         self.conn.commit()
@@ -261,24 +299,28 @@ class Tasks:
     def close(self):
         self.conn.close()
     
-    def SearchTask(self,t):
-        with self.conn.cursor() as cur:
-            cur.execute(f"SELECT msg FROM Task WHERE msg='{t}'")      
-            L=cur.fetchall()        #List of tuples of tasks
-            return L
-    
-    def filter(self, Status='', DueDate:datetime.datetime=None, Priority:int=0,  Folder:int=""):
+    def filter(self, msg: str='', Status='', DueDate:datetime.datetime=None, Priority:int=0,  Folder:int=""):
         Criteria=[]
         with self.conn.cursor() as cur:
-            if Status!='': Criteria.append(f"status='{Status}'")
+            if Status!='': Criteria.append(f"iscompleted='{Status}'")
             if DueDate: Criteria.append(f"dt='{DueDate}'")
             if Priority: Criteria.append(f"priority={Priority}")
             if Folder: Criteria.append(f"folder='{Folder}'")
+            if msg:Criteria.append(f"msg LIKE '%{msg}%'")
 
             q="AND".join(Criteria)
             cur.execute(f"SELECT * FROM Tasks WHERE {q}")
             return cur.fetchall()
-
+    
+    def info(self, ID:int, Table:str):  #Make sure table is in string form
+        if ID is None: print("ID can't be none!")
+        with self.conn.cursor() as cur:
+            cur.execute(f"SELECT * FROM {Table} WHERE ID={ID}")
+            return cur.fetchall()[0]   #Returns 1 tuple
+    def ID(self,msg:str):
+        with self.conn.cursor() as cur:
+            cur.execute(f"Select * from Tasks WHERE msg='{msg}'")
+            return cur.fetchone()[0]
     
 
 class Event:
