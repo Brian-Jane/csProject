@@ -170,7 +170,7 @@ class Tasks:
                     Revdt = datetime.datetime.now() + datetime.timedelta(seconds=RevInterval)
                 elif revtype.lower() == 'e':
                     x:datetime.timedelta = (datetime.datetime.now() - doc)
-                    n:int = math.ciel(x.total_seconds()/RevInterval)
+                    n:int = math.ceil(x.total_seconds()/RevInterval)
                     Revdt = doc + n * RevInterval
             cur.execute("UPDATE RevT SET Revivaldt=%s WHERE ID = %s",(Revdt,ID))
             cur.execute(f"UPDATE Tasks SET isCompleted=TRUE WHERE ID={ID}")
