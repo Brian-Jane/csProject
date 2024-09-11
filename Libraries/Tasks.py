@@ -343,7 +343,7 @@ class info:
             with self.conn.cursor() as cur:
                 cur.execute("SELECT msg FROM Tasks WHERE ID=%s",(ID,))
                 r=cur.fetchone()
-                if r: return r[0]
+                if r: return r[0].capitalize()
         else: print("Column not present in the given Table")
 
     def priority(self,ID:int):
