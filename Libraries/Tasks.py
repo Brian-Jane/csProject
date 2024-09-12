@@ -2,6 +2,7 @@
 from mysql.connector import MySQLConnection,Error,errorcode
 import datetime
 import threading
+import math
 
 DEFAULT_FOLDER_COLOR =  "#888888"
 TABLE_VERSION = '1.0'
@@ -101,6 +102,7 @@ class Tasks:
                     cur.execute("DROP TABLE TEMPRevT")
                 else:                    
                     cur.execute(CREATE_COMMAND_REVT)
+            self.checkRevival(False)
             self.conn.commit()
 
     
@@ -150,21 +152,28 @@ class Tasks:
         with self.conn.cursor() as cur:
             cur.execute(f"SELECT slno, msg, priority, dt WHERE type='{Type}'")
             return cur.fetchall()
+        
+    def checkRevival(self,commit=True):
+        with self.conn.cursor() as cur:
+            cur.execute("UPDATE Tasks SET isCompleted=FALSE WHERE NOW()>Revivaldt")
+        if commit:self.conn.commit()
 
     def completeTask(self,ID:int):
         with self.conn.cursor() as cur:
-            cur.execute(f"SELECT RevivalInterval, RevivalType FROM RevT WHERE ID={ID}")
+            cur.execute(f"SELECT RevivalInterval, RevivalType, DOC FROM RevT WHERE ID={ID}")
             L = cur.fetchall()
-            if L[0][0]!=None:
-                if L[0][1].lower()=="a":
-                    self.afunc(ID, L[0][0])
+            assert len(L)==1
+            T = L[0]
+            RevInterval,revtype,doc = L
+            if L:
+                if revtype.lower() == 'a':
+                    Revdt = datetime.datetime.now() + datetime.timedelta(seconds=RevInterval)
+                elif revtype.lower() == 'e':
+                    x:datetime.timedelta = (datetime.datetime.now() - doc)
+                    n:int = math.ceil(x.total_seconds()/RevInterval)
+                    Revdt = doc + n * RevInterval
+            cur.execute("UPDATE RevT SET Revivaldt=%s WHERE ID = %s",(Revdt,ID))
             cur.execute(f"UPDATE Tasks SET isCompleted=TRUE WHERE ID={ID}")
-        self.conn.commit()
-
-    def afunc(self, ID:int, RevivalInterval:int):
-        Revivaldt = datetime.datetime.now() + datetime.timedelta(seconds=RevivalInterval)
-        with self.conn.cursor() as cur:
-            cur.execute(f"UPDATE Tasks SET Revivaldt='{Revivaldt}' WHERE slno={ID}")
         self.conn.commit()
 
     def addTask(self, msg: str, priority: int = 5, dt: datetime.datetime = None, folder: str = None,
@@ -194,6 +203,7 @@ class Tasks:
                 cur.execute("INSERT INTO RevT(ID,Revivaldt,RevivalType, RevivalInterval, Doc) \
                             VALUES(%s,%s, %s, %s,%s)",(ID,revdt,RevivalType, ReviveInterval,DOC)) 
             self.conn.commit()
+            
     def _genID(self):
         with self.conn.cursor() as cur:
             cur.execute("SELECT ID FROM Tasks")
@@ -204,29 +214,7 @@ class Tasks:
                     return i+1
             raise Exception("BRUHHH")
                 
-    def efunc(self):        #This function MUST be called whenever the application is opened
-        with self.conn.cursor() as cur:
-#                                0        1             2              3        4                 
-            cur.execute("SELECT T.ID, Revivaldt, RevivalInterval, iscompleted, DOC FROM RevT R, Tasks T WHERE \
-                        R.ID=T.ID AND (RevivalType= 'E' OR RevivalType='e')")
-            rows=cur.fetchall()
-            for i in rows:
-                now=datetime.datetime.now()
-                DOC= i[4]
-                revdt=i[1]
-                if now>=revdt:
-                    self._ecompleted(i[0],i[1],i[2],i[3])
 
-    def _ecompleted(self, ID:int, Revivaldt:datetime.datetime, RevivalInterval:int, iscompleted:bool):
-        with self.conn.cursor() as cur:
-            if iscompleted:
-                cur.execute("UPDATE Tasks SET iscompleted=False WHERE ID=%s",(ID,))
-                self.conn.commit()
-            revdt= Revivaldt + datetime.timedelta(seconds=RevivalInterval)
-            cur.execute("UPDATE RevT SET Revivaldt=%s WHERE ID=%s",(revdt, ID))
-
-
-            
     def delTask(self, slno:int):
         self.execute(f"DELETE FROM Tasks WHERE slno={slno}")
         self.execute(f"UPDATE Tasks SET slno = slno-1 WHERE slno>{slno}") #correct the gap 

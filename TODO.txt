@@ -1,0 +1,3 @@
+Convert all queries to parameterized queries
+info class is not what we discussed (ill implement what i talked about if i can figure out how)
+self.execute can have a logging feature for debugging purposes and should be more useful
