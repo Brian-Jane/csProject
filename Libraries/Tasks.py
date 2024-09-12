@@ -5,9 +5,9 @@ import threading
 import math
 
 DEFAULT_FOLDER_COLOR =  "#888888"
-TABLE_VERSION = '1.0'
+TABLE_VERSION = '2.0'
 EVENT_TABLE_VERSION= '1.0'
-REV_TABLE_VERSION = '1.0'
+REV_TABLE_VERSION = '2.0'
 
 CREATE_COMMAND_TASKS = f"CREATE TABLE Tasks(ID INT PRIMARY KEY,\
         slno INT AUTO_INCREMENT UNIQUE,\
@@ -62,6 +62,7 @@ class Tasks:
         with conn.cursor() as cur:
             cur.execute("DROP TABLE IF EXISTS TEMPTasks")
             cur.execute("DROP TABLE IF EXISTS TEMPFolders")
+            cur.execute("DROP TABLE IF EXISTS TEMPRevt")
             if fv!=TABLE_VERSION: #Since Folders is the parent table, it has to be created first.               
                 if fv!=0:#outdated table does exist, as opposed to no table at all
                     cur.execute("RENAME TABLE Folders to TEMPFolders")                    
@@ -155,24 +156,23 @@ class Tasks:
         
     def checkRevival(self,commit=True):
         with self.conn.cursor() as cur:
-            cur.execute("UPDATE Tasks SET isCompleted=FALSE WHERE NOW()>Revivaldt")
+            cur.execute("UPDATE Tasks,Revt SET isCompleted=FALSE WHERE NOW()>Revivaldt AND\
+                        Tasks.ID = Revt.ID")
         if commit:self.conn.commit()
 
     def completeTask(self,ID:int):
         with self.conn.cursor() as cur:
             cur.execute(f"SELECT RevivalInterval, RevivalType, DOC FROM RevT WHERE ID={ID}")
-            L = cur.fetchall()
-            assert len(L)==1
-            T = L[0]
-            RevInterval,revtype,doc = L
+            L = cur.fetchall()            
             if L:
+                RevInterval,revtype,doc = L[0]
                 if revtype.lower() == 'a':
                     Revdt = datetime.datetime.now() + datetime.timedelta(seconds=RevInterval)
                 elif revtype.lower() == 'e':
                     x:datetime.timedelta = (datetime.datetime.now() - doc)
                     n:int = math.ceil(x.total_seconds()/RevInterval)
                     Revdt = doc + n * RevInterval
-            cur.execute("UPDATE RevT SET Revivaldt=%s WHERE ID = %s",(Revdt,ID))
+                cur.execute("UPDATE RevT SET Revivaldt=%s WHERE ID = %s",(Revdt,ID))
             cur.execute(f"UPDATE Tasks SET isCompleted=TRUE WHERE ID={ID}")
         self.conn.commit()
 
