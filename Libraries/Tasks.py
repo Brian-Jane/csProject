@@ -178,9 +178,9 @@ class Tasks:
             """            
             # Prepare the values to be inserted
             ID = self._genID()
-            values = (ID,msg.lower(), priority, dt, folder)
+            values = (ID,msg, priority, dt, folder)
             cur.execute("SELECT msg from Tasks")
-            if (msg.lower(),) in cur.fetchall(): 
+            if (msg,) in cur.fetchall(): 
                 print("Don't repeat tasks")
                 return None
             # Execute the query with parameters
@@ -310,7 +310,7 @@ class Tasks:
             if Priority: Criteria.append(f"priority={Priority}")
             if Folder: Criteria.append(f"folder='{Folder}'")
             if msg:
-                msg=msg.lower()
+                msg=msg
                 Criteria.append(f"msg LIKE '%{msg}%'")
 
             q="AND".join(Criteria)
@@ -326,7 +326,7 @@ class info:
     
     def ID(self, msg:str):
         with self.conn.cursor() as cur:
-            cur.execute("SELECT ID FROM Tasks WHERE msg=%s",(msg.lower(),))
+            cur.execute("SELECT ID FROM Tasks WHERE msg=%s",(msg,))
             r=cur.fetchone()
             if r: return r[0]
             else: print("Task not present")
