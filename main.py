@@ -1,6 +1,8 @@
-from TRIALS.untitled import *
+#from TRIALS.untitled import *
+from TRIALS.TRial import *
 import sys
 app = QtWidgets.QApplication(sys.argv)
+
  
 class MyyMainWindow(QtWidgets.QMainWindow):
     def __init__(self):
