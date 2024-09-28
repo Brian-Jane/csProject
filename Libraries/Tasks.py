@@ -65,7 +65,7 @@ class Tasks:
             cur.execute("DROP TABLE IF EXISTS TEMPRevt")
             if fv!=TABLE_VERSION: #Since Folders is the parent table, it has to be created first.               
                 if fv!=0:#outdated table does exist, as opposed to no table at all
-                    cur.execute("RENAME TABLE Folders to TEMPFolders")                    
+                    cur.execute("RENAME TABLE Folders to TEMPFolders")           
                     cur.execute(CREATE_COMMAND_FOLDERS)                 
                     cur.execute("INSERT INTO Folders SELECT * FROM TEMPFolders")
                     if tv!=0:
@@ -171,10 +171,23 @@ class Tasks:
                 elif revtype.lower() == 'e':
                     x:datetime.timedelta = (datetime.datetime.now() - doc)
                     n:int = math.ceil(x.total_seconds()/RevInterval)
-                    Revdt = doc + n * RevInterval
+                    Revdt = doc + datetime.timedelta(seconds=n * RevInterval)
                 cur.execute("UPDATE RevT SET Revivaldt=%s WHERE ID = %s",(Revdt,ID))
             cur.execute(f"UPDATE Tasks SET isCompleted=TRUE WHERE ID={ID}")
         self.conn.commit()
+    def getRevdt(self,ID:int):
+        with self.conn.cursor() as cur:
+            cur.execute(f"SELECT RevivalInterval, RevivalType, DOC FROM RevT WHERE ID={ID}")
+            L = cur.fetchall()            
+            if L:
+                RevInterval,revtype,doc = L[0]
+                if revtype.lower() == 'a':
+                    raise TypeError("only e type functions are allowed")
+                elif revtype.lower() == 'e':
+                    x:datetime.timedelta = (datetime.datetime.now() - doc)
+                    n:int = math.ceil(x.total_seconds()/RevInterval)
+                    Revdt = doc + datetime.timedelta(seconds=n * RevInterval)
+                return Revdt
 
     def addTask(self, msg: str, priority: int = 5, dt: datetime.datetime = None, folder: str = None,
                 ReviveInterval: int = None, Revivaldt:datetime.datetime=None, RevivalType:str = 'e' ):
