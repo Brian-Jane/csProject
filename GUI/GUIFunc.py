@@ -1,8 +1,12 @@
-from PyQt5 import QtWidgets, QtGui
-from Libraries.Tasks import *
+import sys
+import os
+from PyQt5 import QtWidgets,QtGui
 import datetime
 import mysql.connector as m
+# Ensure the parent directory of 'Libraries' is added to the path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+from Libraries.Tasks import *
 
 FONT= QtGui.QFont()
 FONT.setPointSize(10)

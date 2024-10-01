@@ -22,7 +22,7 @@ class MyWindow(QtWidgets.QWidget):
         self.setLayout(Layout)
         G.enterRow(Layout,'Task-1',6,folder="Folder-1")
         G.enterRow(Layout,'Task-2',9,folder="Folder-2")
-        
+                
 app = QtWidgets.QApplication(sys.argv)
 
 window = MyWindow()
