@@ -7,7 +7,7 @@ FONT= QtGui.QFont()
 FONT.setPointSize(10)
 conn=m.connect(user='root',host='LocalHost',database='csp', password='0000')
 
-def genCheckbox(data:str,layout:QtWidgets.QBoxLayout, row:int,column):
+def genCheckbox(data:str,layout:QtWidgets.QBoxLayout, row:int,column:int):
     checkbox=QtWidgets.QCheckBox(data)
     checkbox.clicked.connect(lambda:checkbox_clicked(checkbox))
     checkbox.setFont(FONT)
