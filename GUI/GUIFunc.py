@@ -14,7 +14,7 @@ def genCheckbox(data:str,layout:QtWidgets.QBoxLayout, row:int,column:int):
 
     layout.addWidget(checkbox,row,column)
     def checkbox_clicked(checkbox:QtWidgets.QCheckBox):
-        print(checkbox.text())
+        print(checkbox.text(),"is clicked!")
 
 def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
     Label=QtWidgets.QLabel(data)
@@ -30,10 +30,10 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:str, priority:int=5, DueDate:date
     slno=i.slno(ID)
 
     genLabel(str(slno),layout,slno-1,0)
-    genCheckbox(task,layout,slno-1,1)
-    genLabel(str(priority),layout,slno-1,2)
-    genLabel(str(DueDate),layout,slno-1,3)
-    genLabel(folder,layout,slno-1,4)
+    genCheckbox(task,layout,slno-1,2)
+    genLabel(str(priority),layout,slno-1,4)
+    genLabel(str(DueDate),layout,slno-1,6)
+    genLabel(folder,layout,slno-1,8)
 
 
 
