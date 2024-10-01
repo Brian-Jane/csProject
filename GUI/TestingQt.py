@@ -7,18 +7,7 @@ class MyWindow(QtWidgets.QWidget):
         super().__init__()
         self.setWindowTitle("mainwindow")
         self.setGeometry(500, 100, 908, 753)
-        """checkboxes=self.findChildren(QtWidgets.QCheckBox)
-        D={}
-        #{task:Checkbox}    Automatically the name of the checkbox is the text it stores
-        for i in checkboxes:
-            D[i.text()]=i
-        v_layout=QtWidgets.QVBoxLayout()
-        G.genCheckbox(task="hi", layout=v_layout, Window=self,Dcheck=D)     
-        G.genCheckbox(task="hello",layout=v_layout, Window=self,Dcheck=D)  
-        self.setLayout(v_layout)
-        for key, checkbox in D.items():
-            print(f"Checkbox name: {key} - Text: {checkbox.text()}")"""
-        
+                
                 
 app = QtWidgets.QApplication(sys.argv)
 
