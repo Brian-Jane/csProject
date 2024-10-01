@@ -1,0 +1,3 @@
+Make 'tasks','folders' to change tabs in stacked widget
+Add functionality to the 'Add tasks' button
+Add Functionality to the Search button

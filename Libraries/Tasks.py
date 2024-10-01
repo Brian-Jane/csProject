@@ -1,7 +1,6 @@
 #tested
 from mysql.connector import MySQLConnection,Error,errorcode
 import datetime
-import threading
 import math
 
 DEFAULT_FOLDER_COLOR =  "#888888"
