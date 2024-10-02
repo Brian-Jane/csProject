@@ -39,13 +39,20 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:str, priority:int=5, DueDate:date
     ID=iT.ID(task)
     slno=iT.slno(ID)
 
-    genLabel(str(slno),layout,slno-1,0)
-    genCheckbox(task,layout,slno-1,2)
-    genLabel(str(priority),layout,slno-1,4)
-    genLabel(str(DueDate),layout,slno-1,6)
-    genLabel(folder,layout,slno-1,8)
+    genLabel(str(slno),layout,slno,0)
+    genCheckbox(task,layout,slno,2)
+    genLabel(str(priority),layout,slno,4)
+    genLabel(str(DueDate),layout,slno,6)
+    genLabel(folder,layout,slno,8)
 
-
-
-
+def new_windowbttn(current_window: QtWidgets.QMainWindow, new_window: QtWidgets.QMainWindow):
+    if not new_window.isVisible():  # Check if the window is not currently visible
+        new_window.show()  # Show the new window
     
+def loadUI(main_layout:QtWidgets.QLayout, layout:QtWidgets.QLayout):   
+    #Tasks
+    Tasks=t.fetchall()
+    for i in Tasks:
+        enterRow(layout,i[2],i[3],i[4],i[5])
+ 
+"""Have to do the same for folders too"""
