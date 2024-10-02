@@ -31,11 +31,11 @@ def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
     else: layout.addWidget(Label,row,column)
     Label.setFont(FONT)
 
-def enterRow(layout:QtWidgets.QBoxLayout, task:str, priority:int=5, DueDate:datetime.datetime=None, folder:str=''):
+def enterRow(layout:QtWidgets.QBoxLayout, task:str, priority:int=5, DueDate:datetime.datetime=None, folder:str='',colorhex:str="#888888"):
     t.addTask(msg=task, priority=priority, dt=DueDate, folder=folder)
     if folder:
-        folders=iF.selectfolders()
-        if folder not in folders: t.addFolder(folder)
+        folders=t.fetchFolders()
+        if (folder,colorhex) not in folders: t.addFolder(folder)
     ID=iT.ID(task)
     slno=iT.slno(ID)
 
