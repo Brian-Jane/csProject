@@ -3,10 +3,8 @@ import os
 from PyQt5 import QtWidgets,QtGui
 import datetime
 import mysql.connector as m
-# Ensure the parent directory of 'Libraries' is added to the path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from Libraries.Tasks import *
+from Tasks import *
 
 FONT= QtGui.QFont()
 FONT.setPointSize(10)
@@ -14,7 +12,7 @@ conn=m.connect(user='root',host='LocalHost',database='csp', password='0000')
 
 t=Tasks(conn)
 iT=info(conn,Table="Tasks")
-iF=info(conn,Table='Folder')
+iF=info(conn,Table='Folders')
 
 def genCheckbox(data:str,layout:QtWidgets.QBoxLayout, row:int,column:int):
     checkbox=QtWidgets.QCheckBox(data)
@@ -35,6 +33,9 @@ def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:str, priority:int=5, DueDate:datetime.datetime=None, folder:str=''):
     t.addTask(msg=task, priority=priority, dt=DueDate, folder=folder)
+    if folder:
+        folders=iF.selectfolders()
+        if folder not in folders: t.addFolder(folder)
     ID=iT.ID(task)
     slno=iT.slno(ID)
 
