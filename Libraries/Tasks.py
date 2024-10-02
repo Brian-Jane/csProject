@@ -403,13 +403,6 @@ class info:
                 if r: return r[0]
         else: print("COlumn not present in the given table")
 
-    
-    def selectfolders(self):
-        if self.Table.lower()=='folders':
-            with self.conn.cursor() as cur:
-                cur.execute("SELECT Folder_name FROM Folders")
-                r=cur.fetchall()    #List of Tuples
-                return [i[0] for i in r] if r else []
 
 
 class Event:
