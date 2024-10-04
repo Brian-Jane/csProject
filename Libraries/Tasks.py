@@ -402,6 +402,19 @@ class info:
                 r=cur.fetchone()
                 if r: return r[0]
         else: print("COlumn not present in the given table")
+class taskobject:
+    def __init__(self,ID,slno,msg,priority,dt,folder,RevivalType,RevivalInterval,DOC,Revivaldt):
+        self.ID = ID
+        self.slno = slno
+        self.msg = msg
+        self.priority = priority
+        self.dueDate = dt
+        self.folder = folder
+        self.RevType = RevivalType
+        self.RevInterval = RevivalInterval
+        self.Revdate = Revivaldt
+        self.DOC = DOC
+
 
 class Event:
     def __init__(self, conn:MySQLConnection):
