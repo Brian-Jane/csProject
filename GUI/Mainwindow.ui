@@ -545,7 +545,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;5&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Label</string>
+             <string>Folder</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
