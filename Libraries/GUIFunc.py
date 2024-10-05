@@ -72,7 +72,7 @@ def enterRow(layout:QtWidgets.QBoxLayout, slno: int, task:str, priority:int=5, D
     
 
 
-def loadUI(main_layout:QtWidgets.QLayout, Tlayout:QtWidgets.QLayout, Flayout:QtWidgets.QLayout):   
+def loadUI(main_layout:QtWidgets.QLayout, Tlayout:QtWidgets.QLayout, Flayout:QtWidgets.QLayout):   #This function is not yet complete. Kindly ignore
     #Tasks
     Tasks=t.fetchall()
     for i in Tasks:
@@ -89,6 +89,8 @@ def loadUI(main_layout:QtWidgets.QLayout, Tlayout:QtWidgets.QLayout, Flayout:QtW
  
 """Have to do the same for folders too"""
 
+
+#This function is ALSO not yet completed. Kindly ignore
 '''
 def createlayout(Mainwindow:QtWidgets.QMainWindow,widget:QtWidgets.QWidget):
     m=Mainwindow
