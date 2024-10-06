@@ -1,6 +1,7 @@
 #tested
 from mysql.connector import MySQLConnection,Error,errorcode
 import datetime
+import threading
 import math
 
 DEFAULT_FOLDER_COLOR =  "#888888"
@@ -286,13 +287,22 @@ class Tasks:
         self.conn.commit()
     
     def fetchall(self,order_by:str='slno',folder:str=''):
+        if order_by not in taskobject.attributes:
+            raise ValueError("The order by argument must be a valid attribute")
+        
+        clause = " ORDER BY %s"
+        param = (order_by,)
+        if folder:
+            clause = " GROUP BY %s" + clause
+            param = (folder,)+param 
+        TaskList = []
         with self.conn.cursor() as cur:
-            if folder:
-                cur.execute(f"SELECT * FROM Tasks GROUP BY {folder} ORDER BY {order_by}")
-            else:
-                cur.execute(f"SELECT * FROM Tasks ORDER BY {order_by}")
-            r = cur.fetchall()
-        return r
+            cur.execute(f"""SELECT Tasks.ID,{','.join(taskobject.attributes[1:])} FROM Tasks LEFT JOIN Revt ON Tasks.ID = Revt.ID
+                        {clause}""",param) #left joined table for reviving tasks
+            for i in cur:
+                t = taskobject(*i) #passes the tuple i as arguments
+                TaskList.append(t)
+        return TaskList
     
     def fetchFolders(self):
         with self.conn.cursor() as cur:
@@ -316,93 +326,12 @@ class Tasks:
             q="AND".join(Criteria)
             cur.execute(f"SELECT * FROM Tasks WHERE {q}")
             return cur.fetchall()
-            
-    
-
-class info:
-    def __init__(self, conn:MySQLConnection, Table:str):
-        self.Table=Table
-        self.conn=conn
-    
-    def ID(self, msg:str):
-        with self.conn.cursor() as cur:
-            cur.execute("SELECT ID FROM Tasks WHERE msg=%s",(msg,))
-            r=cur.fetchone()
-            if r: return r[0]
-            else: print("Task not present")
-    def slno(self, ID:int):
-        if self.Table.lower()=='tasks':
-            with self.conn.cursor() as cur:
-                cur.execute("SELECT slno FROM Tasks WHERE ID=%s",(ID,))
-                r=cur.fetchone()
-                if r: return r[0]
-        else: print("Column not present in the given Table")
-
-    def msg(self,ID:int):
-        if self.Table.lower()=='tasks':
-            with self.conn.cursor() as cur:
-                cur.execute("SELECT msg FROM Tasks WHERE ID=%s",(ID,))
-                r=cur.fetchone()
-                if r: return r[0].capitalize()
-        else: print("Column not present in the given Table")
-
-    def priority(self,ID:int):
-        if self.Table.lower()=='tasks':
-            with self.conn.cursor() as cur:
-                cur.execute("SELECT priority FROM Tasks WHERE ID=%s",(ID,))
-                r=cur.fetchone()
-                if r: return r[0]
-        else: print("Column not present in the given Table")
-
-    def deadline(self,ID:int):
-        if self.Table.lower()=='tasks':
-            with self.conn.cursor() as cur:
-                cur.execute("SELECT dt FROM Tasks WHERE ID=%s",(ID,))
-                r=cur.fetchone()
-                if r: return r[0]
-        else: print("Column not present in the given Table")
-
-    def folder(self,ID:int):
-        if self.Table.lower()=='tasks':
-            with self.conn.cursor() as cur:
-                cur.execute("SELECT folder FROM Tasks WHERE ID=%s",(ID,))
-                r=cur.fetchone()
-                if r: return r[0]
-        else: print("Column not present in the given Table")
-
-    def iscompleted(self,ID:int):
-        if self.Table.lower()=='tasks':
-            with self.conn.cursor() as cur:
-                cur.execute("SELECT iscompleted FROM Tasks WHERE ID=%s",(ID,))
-                r=cur.fetchone()
-                if r: return r[0]
-        else: print("Column not present in the given Table")
-
-
-    def Revivaldt(self,ID:int):
-        if self.Table.lower()=='revt':
-            with self.conn.cursor() as cur:
-                cur.execute("SELECT Revivaldt FROM RevT WHERE ID=%s",(ID,))
-                r=cur.fetchone()
-                if r: return r[0]
-        else: print("COlumn not present in the given table")
-
-    def RevivalInterval(self,ID:int):
-        if self.Table.lower()=='revt':
-            with self.conn.cursor() as cur:
-                cur.execute("SELECT RevivalInterval FROM RevT WHERE ID=%s",(ID,))
-                r=cur.fetchone()
-                if r: return r[0]
-        else: print("COlumn not present in the given table")
-
-    def RevivalType(self,ID:int):
-        if self.Table.lower()=='revt':
-            with self.conn.cursor() as cur:
-                cur.execute("SELECT RevivalType FROM RevT WHERE ID=%s",(ID,))
-                r=cur.fetchone()
-                if r: return r[0]
-        else: print("COlumn not present in the given table")
+           
 class taskobject:
+
+    attributes = ['ID','slno','msg','priority','dt','folder','RevivalType','RevivalInterval','DOC','Revivaldt']
+    revAttributes = ['RevivalType','RevivalInterval','DOC','Revivaldt']
+    taskAttributes = ['ID','slno','msg','priority','dt','folder']
     def __init__(self,ID,slno,msg,priority,dt,folder,RevivalType,RevivalInterval,DOC,Revivaldt):
         self.ID = ID
         self.slno = slno
@@ -414,9 +343,19 @@ class taskobject:
         self.RevInterval = RevivalInterval
         self.Revdate = Revivaldt
         self.DOC = DOC
-
-
-
+    def __str__(self):
+        string = f"""TaskID:{self.ID}
+slno:{self.slno}
+msg:{self.msg}
+priority:{self.priority}
+dueDate:{self.dueDate}
+folder:{self.folder}
+revType:{self.RevType}
+revInterval:{self.RevInterval}
+doc:{self.DOC}
+revdt:{self.Revdate}
+""" 
+        return string
 
 class Event:
     def __init__(self, conn:MySQLConnection):

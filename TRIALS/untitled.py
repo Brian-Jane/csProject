@@ -57,14 +57,10 @@ class Ui_MainWindow(object):
         self.stackedWidget.addWidget(self.page_3)
         self.verticalLayout.addWidget(self.stackedWidget)
         MainWindow.setCentralWidget(self.centralwidget)
-        self.pushButton_5.clicked.connect(self.switch)
         self.retranslateUi(MainWindow)
         self.stackedWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-    def switch(self):
-        self.index = int(not bool(self.index))
-        self.stackedWidget.setCurrentIndex(self.index)
-
+ 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
