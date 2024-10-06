@@ -35,14 +35,6 @@ def genLineEdit(layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
     LineEdit.setFont(FONT)
     return LineEdit
 
-def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject):
-
-    genLabel(str(task.slno),layout,task.slno,0)
-    genCheckbox(task,layout,task.slno,2)
-    genLabel(str(task.priority),layout,task.slno,4)
-    genLabel(str(task.dueDate),layout,task.slno,6)
-    genLabel(task.folder,layout,task.slno,8)
-
 def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None, close:bool=False):
     n_instance=nWindow()
     if close:
@@ -52,8 +44,13 @@ def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None,
     else:
         n_instance.show()
 
-def enterRow(layout:QtWidgets.QBoxLayout, slno:int, task:str, priority:int=5, DueDate:datetime.datetime=None, folder:str='',colorhex:str="#888888",
-             spacer:QtWidgets.QSpacerItem=None, new:bool=False):
+def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
+             spacer:QtWidgets.QSpacerItem=None):
+
+    slno=task.slno
+    priority=task.priority
+    DueDate=task.dueDate
+    folder=task.folder
 
     if not spacer:
         genLabel(str(slno),layout,slno,0)
