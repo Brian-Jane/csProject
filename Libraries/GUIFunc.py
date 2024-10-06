@@ -49,6 +49,10 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
     if task==None:
         print("Task contains nothing! Try avoiding repeating tasks")
         return None
+    if type(layout)!=QtWidgets.QGridLayout: 
+        print("you can use this function only for GridLayout \
+              Try again")
+        return None
     slno=task.slno
     priority=task.priority
     DueDate=task.dueDate

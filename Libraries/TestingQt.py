@@ -11,13 +11,12 @@ class MyWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("mainwindow")
-        self.setGeometry(500, 100, 908, 753)
+        self.setGeometry(500, 100, 2000, 1500)
         self.Layout=QtWidgets.QGridLayout()
-        t=a.addTask("Task-15",1, folder="Folder-4",ReviveInterval=10,RevivalType='e')
-        a.completeTask(t.ID)
-        print(a.isCompleted(t.ID))
-        time.sleep(11)
-        print(a.isCompleted(t.ID))
+        L=a.fetchall()
+        for i in L:
+            G.enterRow(self.Layout,i)       #Works👍
+
         '''G.enterRow(self.Layout,t)ff
         self.bttn=QtWidgets.QPushButton(text="press")
         self.bttn.clicked.connect(lambda: G.newWindow(newWindow))
