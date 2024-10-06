@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets
 import GUIFunc as G
 import mysql.connector as m
 from Tasks import *
+import time
 conn=m.connect(user="root",host="LocalHost",database="csp",password="0000")
 a=Tasks(conn)
 
@@ -12,14 +13,16 @@ class MyWindow(QtWidgets.QWidget):
         self.setWindowTitle("mainwindow")
         self.setGeometry(500, 100, 908, 753)
         self.Layout=QtWidgets.QGridLayout()
-        G.enterRow(self.Layout,"Task-3",1,datetime.datetime(2024,10,2), folder="Folder-4")
+        t=a.addTask("Task-15",1, folder="Folder-4",ReviveInterval=10,RevivalType='e')
+        a.completeTask(t.ID)
+        print(a.isCompleted(t.ID))
+        time.sleep(11)
+        print(a.isCompleted(t.ID))
+        '''G.enterRow(self.Layout,t)ff
         self.bttn=QtWidgets.QPushButton(text="press")
         self.bttn.clicked.connect(lambda: G.newWindow(newWindow))
-        self.Layout.addWidget(self.bttn)
+        self.Layout.addWidget(self.bttn)'''
         self.setLayout(self.Layout)
-
-        self.new_window_instance = None
-
 
 
 class newWindow(QtWidgets.QWidget):

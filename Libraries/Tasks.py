@@ -189,10 +189,19 @@ class Tasks:
                     Revdt = doc + datetime.timedelta(seconds=n * RevInterval)
                 return Revdt
 
+    def isCompleted(self,ID:int):
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT isCompleted FROM Tasks WHERE ID=%s",(ID,) )
+                return(cur.fetchone()[0])
+        except AttributeError:
+            return "ID passed is none."
+
     def addTask(self, msg: str, priority: int = 5, dt: datetime.datetime = None, folder: str = None,
                 ReviveInterval: int = None, Revivaldt:datetime.datetime=None, RevivalType:str = 'e' ):
         # Prepare the SQL statement with placeholders
         # Revivaldt must not be given for Recurring functions
+        DOC= datetime.datetime.now()
         with self.conn.cursor() as cur:
             sql = """
             INSERT INTO Tasks (ID,msg, priority, dt, folder)
@@ -209,13 +218,17 @@ class Tasks:
             cur.execute(sql, values)
             self.conn.commit()
 
-            if ReviveInterval:
+            if ReviveInterval:      #RevivalInterval is in seconds
                 if dt: print("Please don't give deadline for a recureing function :)")
-                DOC= datetime.datetime.now()
                 revdt= datetime.datetime.now() + datetime.timedelta(seconds=ReviveInterval)
                 cur.execute("INSERT INTO RevT(ID,Revivaldt,RevivalType, RevivalInterval, Doc) \
                             VALUES(%s,%s, %s, %s,%s)",(ID,revdt,RevivalType, ReviveInterval,DOC)) 
             self.conn.commit()
+
+            slno = self.fetchall(order_by='slno')[-1].slno + 1
+            task=taskobject(ID,slno,msg,priority,dt,folder,RevivalType,ReviveInterval,DOC,Revivaldt)
+
+            return task
             
     def _genID(self):
         with self.conn.cursor() as cur:
@@ -328,7 +341,8 @@ class Tasks:
             return cur.fetchall()
            
 class taskobject:
-
+    # Make sure the instance is not None.
+    # While adding task, if the task is repeated, then it will give None.
     attributes = ['ID','slno','msg','priority','dt','folder','RevivalType','RevivalInterval','DOC','Revivaldt']
     revAttributes = ['RevivalType','RevivalInterval','DOC','Revivaldt']
     taskAttributes = ['ID','slno','msg','priority','dt','folder']

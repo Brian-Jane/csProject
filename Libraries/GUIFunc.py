@@ -24,7 +24,7 @@ def checkbox_clicked(checkbox:QtWidgets.QCheckBox,task:taskobject):
 
 def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
     Label=QtWidgets.QLabel(data)
-    if type(row)==None: layout.addWidget(Label)
+    if row is None: layout.addWidget(Label)
     else: layout.addWidget(Label,row,column)
     Label.setFont(FONT)
 
@@ -46,7 +46,9 @@ def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None,
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
              spacer:QtWidgets.QSpacerItem=None):
-
+    if task==None:
+        print("Task contains nothing! Try avoiding repeating tasks")
+        return None
     slno=task.slno
     priority=task.priority
     DueDate=task.dueDate
