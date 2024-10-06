@@ -12,8 +12,6 @@ FONT.setPointSize(10)
 conn=m.connect(user='root',host='LocalHost',database='csp', password='0000')
 
 t=Tasks(conn)
-iT=info(conn,Table="Tasks")
-iF=info(conn,Table='Folders')
 
 def genCheckbox(data:str,layout:QtWidgets.QBoxLayout, row:int,column:int):
     checkbox=QtWidgets.QCheckBox(data)
@@ -23,8 +21,9 @@ def genCheckbox(data:str,layout:QtWidgets.QBoxLayout, row:int,column:int):
     layout.addWidget(checkbox,row,column)
 
 def checkbox_clicked(checkbox:QtWidgets.QCheckBox):
+    L=t.fetchall()
     print(checkbox.text(),"is clicked!")
-    t.completeTask(iT.ID(checkbox.text()))
+    t.completeTask(L.ID(checkbox.text()))
 
 def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
     Label=QtWidgets.QLabel(data)
@@ -51,8 +50,16 @@ def genLine(layout:QtWidgets.QBoxLayout, orientation:str='v', r:int=None, c:int=
         Line.setFrameShape(QtWidgets.QFrame.HLine)
         layout.addWidget(Line)
 
-def enterRow(layout:QtWidgets.QBoxLayout, slno: int, task:str, priority:int=5, DueDate:datetime.datetime=None, folder:str='',colorhex:str="#888888",
+def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None):     #if cWindow is passed, this function will close the cwindow 
+    if cWindow:
+        cWindow.close()
+        nWindow.show()
+    else:
+        nWindow.show()
+
+def enterRow(layout:QtWidgets.QBoxLayout, task:str, priority:int=5, DueDate:datetime.datetime=None, folder:str='',colorhex:str="#888888",
              spacer:QtWidgets.QSpacerItem=None):
+    slno=newSlno()
 
     if not spacer:
         genLabel(str(slno),layout,slno,0)
@@ -70,6 +77,9 @@ def enterRow(layout:QtWidgets.QBoxLayout, slno: int, task:str, priority:int=5, D
         spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         layout.addItem(spacer,slno+1,0)
     
+def newSlno():
+    L=t.fetchall()
+    return L[-1].slno +1
 
 
 def loadUI(main_layout:QtWidgets.QLayout, Tlayout:QtWidgets.QLayout, Flayout:QtWidgets.QLayout):   #This function is not yet complete. Kindly ignore
