@@ -36,11 +36,41 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject):
     genLabel(str(task.DueDate),layout,task.slno,6)
     genLabel(task.folder,layout,task.slno,8)
 
-def new_windowbttn(current_window: QtWidgets.QMainWindow, new_window: QtWidgets.QMainWindow):
-    if not new_window.isVisible():  # Check if the window is not currently visible
-        new_window.show()  # Show the new window
+def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None, close:bool=False):
+    n_instance=nWindow()
+    if close:
+        c_instance=cWindow()
+        c_instance.close()
+        n_instance.show()
+    else:
+        n_instance.show()
+
+def enterRow(layout:QtWidgets.QBoxLayout, task:str, priority:int=5, DueDate:datetime.datetime=None, folder:str='',colorhex:str="#888888",
+             spacer:QtWidgets.QSpacerItem=None):
+    slno=newSlno()
+
+    if not spacer:
+        genLabel(str(slno),layout,slno,0)
+        genCheckbox(task,layout,slno,2)
+        genLabel(str(priority),layout,slno,4)
+        genLabel(str(DueDate),layout,slno,6)
+        genLabel(folder,layout,slno,8)
+    else:
+        layout.removeItem(spacer)
+        genLabel(str(slno),layout,slno,0)
+        genCheckbox(task,layout,slno,2)
+        genLabel(str(priority),layout,slno,4)
+        genLabel(str(DueDate),layout,slno,6)
+        genLabel(folder,layout,slno,8)
+        spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        layout.addItem(spacer,slno+1,0)
     
-def loadUI(main_layout:QtWidgets.QLayout, layout:QtWidgets.QLayout):   
+def newSlno():
+    L=t.fetchall()
+    return L[-1].slno +1
+
+
+def loadUI(main_layout:QtWidgets.QLayout, Tlayout:QtWidgets.QLayout, Flayout:QtWidgets.QLayout):   #This function is not yet complete. Kindly ignore
     #Tasks
     Tasks=t.fetchall()
     for i in Tasks:
