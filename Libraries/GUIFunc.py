@@ -28,6 +28,13 @@ def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
     else: layout.addWidget(Label,row,column)
     Label.setFont(FONT)
 
+def genLineEdit(layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
+    LineEdit=QtWidgets.QLineEdit()
+    if (row,column)==(None,None): layout.addWidget(LineEdit)
+    else: layout.addWidget(LineEdit,row,column)
+    LineEdit.setFont(FONT)
+    return LineEdit
+
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject):
 
     genLabel(str(task.slno),layout,task.slno,0)
