@@ -20,15 +20,7 @@ class MyWindow(QtWidgets.QWidget):
 
         self.new_window_instance = None
 
-    def open_new_window(self):
-        # Check if the new window hasn't been created yet
-        if not self.new_window_instance:
-            # Create a new instance of the NewWindow class
-            self.new_window_instance = newWindow()
 
-        # Show the new window
-        self.new_window_instance.show()
-        
 
 class newWindow(QtWidgets.QWidget):
     def __init__(self):

@@ -50,12 +50,14 @@ def genLine(layout:QtWidgets.QBoxLayout, orientation:str='v', r:int=None, c:int=
         Line.setFrameShape(QtWidgets.QFrame.HLine)
         layout.addWidget(Line)
 
-def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None):     #if cWindow is passed, this function will close the cwindow 
-    if cWindow:
-        cWindow.close()
-        nWindow.show()
+def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None, close:bool=False):
+    n_instance=nWindow()
+    if close:
+        c_instance=cWindow()
+        c_instance.close()
+        n_instance.show()
     else:
-        nWindow.show()
+        n_instance.show()
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:str, priority:int=5, DueDate:datetime.datetime=None, folder:str='',colorhex:str="#888888",
              spacer:QtWidgets.QSpacerItem=None):
