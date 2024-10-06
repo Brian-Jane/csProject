@@ -14,14 +14,15 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(908, 753)
+
+        MainWindow.resize(1200, 900)
         font = QtGui.QFont()
         font.setPointSize(4)
         MainWindow.setFont(font)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(60, 100, 771, 551))
+        self.horizontalLayoutWidget.setGeometry(QtCore.QRect(60, 100, 1000, 800))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.horizontalLayoutWidget.setFont(font)
