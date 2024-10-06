@@ -1,5 +1,5 @@
 #from TRIALS.untitled import *
-from TRIALS.untitled import *
+from Mainwindow import *
 import sys
 app = QtWidgets.QApplication(sys.argv)
 
