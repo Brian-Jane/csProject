@@ -225,7 +225,7 @@ class Tasks:
                             VALUES(%s,%s, %s, %s,%s)",(ID,revdt,RevivalType, ReviveInterval,DOC)) 
             self.conn.commit()
 
-            slno = self.fetchall(order_by='slno')[-1].slno + 1
+            slno = self.fetchall(order_by='Tasks.slno')[-1].slno + 1
             task=taskobject(ID,slno,msg,priority,dt,folder,RevivalType,ReviveInterval,DOC,Revivaldt)
 
             return task
@@ -299,7 +299,7 @@ class Tasks:
         self.execute(f"UPDATE Tasks SET slno={new_pos_slno} WHERE slno=0")
         self.conn.commit()
     
-    def fetchall(self,order_by:str='slno',folder:str=''):
+    def fetchall(self,order_by:str='Tasks.slno',folder:str=''):
         if order_by not in taskobject.attributes:
             raise ValueError("The order by argument must be a valid attribute")
         
@@ -310,7 +310,9 @@ class Tasks:
             param = (folder,)+param 
         TaskList = []
         with self.conn.cursor() as cur:
-            cur.execute(f"""SELECT Tasks.ID,{','.join(taskobject.attributes[1:])} FROM Tasks LEFT JOIN Revt ON Tasks.ID = Revt.ID
+            cur.execute(f"""SELECT {','.join(taskobject.attributes)}
+                        FROM Tasks LEFT JOIN Revt ON Tasks.ID = Revt.ID
+                        LEFT JOIN Folders ON Tasks.Folder = Folders.folder_name
                         {clause}""",param) #left joined table for reviving tasks
             for i in cur:
                 t = taskobject(*i) #passes the tuple i as arguments
@@ -343,16 +345,22 @@ class Tasks:
 class taskobject:
     # Make sure the instance is not None.
     # While adding task, if the task is repeated, then it will give None.
-    attributes = ['ID','slno','msg','priority','dt','folder','RevivalType','RevivalInterval','DOC','Revivaldt']
+    attributes = ['Tasks.ID','Tasks.slno','Tasks.msg',
+                  'Tasks.priority','Tasks.dt','Tasks.folder',
+                  'Folders.color','Revt.RevivalType','Revt.RevivalInterval',
+                  'Revt.DOC','Revt.Revivaldt']
+    
     revAttributes = ['RevivalType','RevivalInterval','DOC','Revivaldt']
     taskAttributes = ['ID','slno','msg','priority','dt','folder']
-    def __init__(self,ID,slno,msg,priority,dt,folder,RevivalType,RevivalInterval,DOC,Revivaldt):
+    folderAttributes  = ['color']
+    def __init__(self,ID,slno,msg,priority,dt,folder,color,RevivalType,RevivalInterval,DOC,Revivaldt):
         self.ID = ID
         self.slno = slno
         self.msg = msg
         self.priority = priority
         self.dueDate = dt
         self.folder = folder
+        self.color = color
         self.RevType = RevivalType
         self.RevInterval = RevivalInterval
         self.Revdate = Revivaldt
@@ -370,7 +378,15 @@ doc:{self.DOC}
 revdt:{self.Revdate}
 """ 
         return string
-
+class Filter():
+    def __init__(self):
+        self.query = ""
+        self.conditions = []
+    def priority(self,Range:list):
+        """ Range must be of the format [lower limit,upper limit] both inclusive"""
+        if type(Range)==int:
+            Range = [1,Range]
+        self.conditions.append("Tasks.Priority<")
 class Event:
     def __init__(self, conn:MySQLConnection):
         self.conn=conn
