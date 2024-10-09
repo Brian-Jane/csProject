@@ -48,6 +48,39 @@ CREATE_COMMAND_EVENTS= f"CREATE TABLE Events(slno int AUTO_INCREMENT primary key
         COMMENT '{EVENT_TABLE_VERSION}'"
 
 default_value = object()
+class Filter:
+    def __init__(self):
+        self.conditions = {self.priorityHigherThan:"Tasks.Priority>",
+                           self.priorityLowerThan:"Tasks.Priority<",
+                           self.dateBefore:"Tasks.DueDate<",
+                           self.folder:"Tasks.Folder in "}
+        self.folders = ()
+        self.param = {}
+    def priorityLowerThan(self,num:int):
+        """ the priority is lower than num"""
+        self.param[self.priorityLowerThan] = num
+    def priorityHigherThan(self,num:int):
+        """ the priority is higher than num"""
+        self.param[self.priorityHigherThan] = num
+    def dateBefore(self,date:datetime.datetime):
+        """the due date is before given date"""
+        self.param[self.dateBefore] = date
+    def folder(self,folder:str):
+        self.folders += (folder,)
+        self.param[self.folder] = self.folders
+    def generateWhereClause(self):
+        conditions = []
+        values = ()
+        for i in self.param:
+            val = self.param[i]
+            if i==self.folder:
+                conditions.append(self.conditions[i]+"(%s)")
+            else:
+                conditions.append(self.conditions[i]+"%s")
+            values+=(val,)
+        query = ' AND '.join(conditions)
+        return query,values
+    
 class Tasks:   
 
     def __init__(self,conn:MySQLConnection):
@@ -299,12 +332,14 @@ class Tasks:
         self.execute(f"UPDATE Tasks SET slno={new_pos_slno} WHERE slno=0")
         self.conn.commit()
     
-    def fetchall(self,order_by:str='Tasks.slno',folder:str=''):
+    def fetchall(self,order_by:str='Tasks.slno',folder:str='',filter:Filter=Filter()):
         if order_by not in taskobject.attributes:
             raise ValueError("The order by argument must be a valid attribute")
-        
-        clause = " ORDER BY %s"
-        param = (order_by,)
+        whereClause,whereParam = filter.generateWhereClause()
+        if whereClause:
+            whereClause = "WHERE "+whereClause
+        clause = whereClause+f" ORDER BY {order_by}"
+        param = whereParam
         if folder:
             clause = " GROUP BY %s" + clause
             param = (folder,)+param 
@@ -378,15 +413,7 @@ doc:{self.DOC}
 revdt:{self.Revdate}
 """ 
         return string
-class Filter():
-    def __init__(self):
-        self.query = ""
-        self.conditions = []
-    def priority(self,Range:list):
-        """ Range must be of the format [lower limit,upper limit] both inclusive"""
-        if type(Range)==int:
-            Range = [1,Range]
-        self.conditions.append("Tasks.Priority<")
+
 class Event:
     def __init__(self, conn:MySQLConnection):
         self.conn=conn
