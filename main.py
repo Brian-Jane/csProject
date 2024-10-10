@@ -1,23 +1,31 @@
 #from TRIALS.untitled import *
-from GUI.Mainwindow import *
+from Mainwindow import *
 import sys
-app = QtWidgets.QApplication(sys.argv)
+import json
 
- 
+app = QtWidgets.QApplication(sys.argv)
+with open('config.json','r') as file:
+    config = json.load(file)
+mycon = connector.connect(user='root',host='localhost',
+                          password=config['password'],
+                          database=config['database'])
+
 class MyyMainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.ui = Ui_MainWindow()
+        self.ui = mw.MainUi_MainWindow()
         self.ui.setupUi(self)
-        self.index = 0
+        self.renderTasks(self,filter)
+        self.tasks = Tasks.Tasks(mycon)
+        self.stackedWidgetPage = 0
 
-    def on_pushButton_5_pressed(self):
-        print("ahhh")
-        self.index = int(not bool(self.index))
-        self.ui.stackedWidget.setCurrentIndex(self.index)
-
-    def slot1(self,b):
-        print("Yahallo",b)
+    def renderTasks(self,layout,filter=Tasks.Filter()):
+        """displays all tasks in the given input layout"""
+        L = self.tasks.fetchall(filter)
+        for task in L:
+            Gui.enterRow(layout,task)
+        
+    
 MainWindow = MyyMainWindow()
 
 
