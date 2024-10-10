@@ -6,3 +6,4 @@ Libraries/Tasktest.py
 plannertest.py
 
 GUI/TestingQt.py
+Libraries/MakingTaskswindow.py
