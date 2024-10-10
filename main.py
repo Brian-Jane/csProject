@@ -1,5 +1,12 @@
 #from TRIALS.untitled import *
-from Mainwindow import *
+import GUI.Mainwindow as mw
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+import mysql.connector as connector
+
+from Libraries import Tasks
+from Libraries import GUIFunc as Gui
+
 import sys
 import json
 

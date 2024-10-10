@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets,QtGui
 import datetime
 import mysql.connector as m
 
-from Tasks import *
+from Libraries.Tasks import *
 
 FONT= QtGui.QFont()
 FONT.setPointSize(10)
