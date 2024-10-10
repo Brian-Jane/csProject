@@ -22,7 +22,7 @@ class MyWindow(QtWidgets.QWidget):
         self.bttn.clicked.connect(lambda: G.newWindow(newWindow))
         self.Layout.addWidget(self.bttn)'''
         self.setLayout(self.Layout)
-
+        a.addTask('Task-16')
 
 class newWindow(QtWidgets.QWidget):
     def __init__(self):

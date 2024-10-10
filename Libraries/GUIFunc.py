@@ -36,6 +36,7 @@ def genLineEdit(layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
     return LineEdit
 
 def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None, close:bool=False):
+    #If close is True, this function will close the current window
     n_instance=nWindow()
     if close:
         c_instance=cWindow()
