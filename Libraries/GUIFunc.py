@@ -90,26 +90,27 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
         print("you can use this function only for GridLayout \
               Try again")
         return None
+    ID=task.ID
     slno=task.slno
     priority=task.priority
     DueDate=task.dueDate
     folder=task.folder
 
     if not spacer:
-        genLabel(str(slno),layout,slno,0)
-        genCheckbox(task,layout,slno,2)
-        genLabel(str(priority),layout,slno,4)
-        genLabel(str(DueDate),layout,slno,6)
-        genLabel(folder,layout,slno,8)
+        genLabel(str(slno),layout,ID,0)
+        genCheckbox(task,layout,ID,2)
+        genLabel(str(priority),layout,ID,4)
+        genLabel(str(DueDate),layout,ID,6)
+        genLabel(folder,layout,ID,8)
     else:
         layout.removeItem(spacer)
-        genLabel(str(slno),layout,slno,0)
-        genCheckbox(task,layout,slno,2)
-        genLabel(str(priority),layout,slno,4)
-        genLabel(str(DueDate),layout,slno,6)
-        genLabel(folder,layout,slno,8)
+        genLabel(str(slno),layout,ID,0)
+        genCheckbox(task,layout,ID,2)
+        genLabel(str(priority),layout,ID,4)
+        genLabel(str(DueDate),layout,ID,6)
+        genLabel(folder,layout,ID,8)
         spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        layout.addItem(spacer,slno+1,0)
+        layout.addItem(spacer,ID+1,0)
         
     
 
@@ -134,10 +135,11 @@ class ErrorWindow(QtWidgets.QWidget):
     def __init__(self, error:str):
         super().__init__()
         self.setWindowTitle("Error")
-        self.setGeometry(700, 200, 380,200)
+        self.setGeometry(700, 200, 500,200)
         l=QtWidgets.QGridLayout()
         genLabel(error,l,0,0)
         bttn=QtWidgets.QPushButton("OK")
+        bttn.setFont(FONT)
         bttn.clicked.connect(lambda: self.close())
         l.addWidget(bttn,1,0)
 
