@@ -16,10 +16,10 @@ HEADINGFONT.setBold(True)
 
 conn=m.connect(user='root',host='LocalHost',database='csp', password='0000')
 
-def genCheckbox(task:taskobject,callback,layout:QtWidgets.QBoxLayout,
-                row:int,column:int):
+t=Tasks(conn)
+def genCheckbox(task:taskobject,layout:QtWidgets.QBoxLayout, row:int,column:int):
     checkbox=QtWidgets.QCheckBox(task.msg)
-    checkbox.clicked.connect(callback)
+    checkbox.clicked.connect(lambda:checkbox_clicked(checkbox,task))
     checkbox.setFont(FONT)
 
     layout.addWidget(checkbox,row,column)
@@ -33,7 +33,7 @@ def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,
              l:list=None):
     Label=QtWidgets.QLabel(data)
     if row is None: layout.addWidget(Label)
-    else: layout.addWidget(Label,row,column,1,1)
+    else: layout.addWidget(Label,row,column)
     Label.setFont(FONT)
     if l: l.append(Label)
     return Label
@@ -67,53 +67,6 @@ def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None,
         n_instance.show()
     else:
         n_instance.show()
-def genLine(layout:QtWidgets.QBoxLayout,row,column):
-    v_line = QtWidgets.QFrame()
-    v_line.setFrameShape(QtWidgets.QFrame.VLine)  # Vertical line
-    v_line.setFrameShadow(QtWidgets.QFrame.Sunken)
-        
-        # Add the lines to the layout
-    layout.addWidget(v_line,row,column,1,1)
-
-
-def genComboBox(Items:list,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,
-                l:list=None):   
-    combo=QtWidgets.QComboBox()
-    for i in Items:
-        combo.addItem(str(i))
-
-    if row!=None: layout.addWidget(combo,row,column)
-    elif row==None: layout.addWidget(combo)
-    combo.setFont(FONT)
-
-    if l: l.append(combo)
-    return combo
-
-def genLine(Layout:QtWidgets.QBoxLayout, orientation:str='v', row:int=None, column:int=None, rspan:int=None, cspan:int=None):
-    if orientation=='v':    #Vertical Line
-        vertical_line = QtWidgets.QFrame()
-        vertical_line.setFrameShape(QtWidgets.QFrame.VLine)
-        if row!=None:
-            Layout.addWidget(vertical_line, row, column) 
-
-        return vertical_line
-
-    elif orientation=='h':   #Horizontal Line
-        horizontal_line = QtWidgets.QFrame()
-        horizontal_line.setFrameShape(QtWidgets.QFrame.HLine)
-        if row!=None:
-            Layout.addWidget(horizontal_line, row, column) 
-    
-        return horizontal_line
-
-def hideLayout(Layout:QtWidgets.QBoxLayout):
-    for i in range(Layout.count()):
-        item=Layout.itemAt(i)
-        widget = item.widget()
-        if widget is not None:
-            widget.setVisible(False)
-
-
 
 
 def genComboBox(Items:list,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,
@@ -156,7 +109,7 @@ def hideLayout(Layout:QtWidgets.QBoxLayout):
 
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
-             checkBoxCallback,spacer:bool=False):
+             spacer:bool=False):
     if task==None:
         print("Task contains nothing! Try avoiding repeating tasks")
         return None
@@ -191,7 +144,7 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
         for i in range(1,8,2):
             genLine(layout,lastrow,i)
         genLabel(str(slno),layout,lastrow,0)
-        genCheckbox(task,checkBoxCallback,layout,lastrow,2)
+        genCheckbox(task,layout,lastrow,2)
         genLabel(str(priority),layout,lastrow,4)
         genLabel(str(DueDate),layout,lastrow,6)
         genLabel(folder,layout,lastrow,8)
@@ -201,6 +154,7 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
     
         
     
+
 
 
 
@@ -263,24 +217,3 @@ class ErrorWindow(QtWidgets.QWidget):
         l.addWidget(bttn,1,0)
 
         self.setLayout(l)
-        layout.addItem(spacer,lastrow+1,0)
-def deleteRow(layout:QtWidgets.QGridLayout,row):
-    for i in range(layout.columnCount()):
-        item = layout.itemAtPosition(row,i)
-        if item is not None:
-            layout.removeItem(item)
-            if item.spacerItem():
-                del item
-            else:
-                widget = item.widget()
-                widget.deleteLater()
-
-
-
-def loadUI(main_layout:QtWidgets.QLayout, Tlayout:QtWidgets.QLayout, Flayout:QtWidgets.QLayout):   #This function is not yet complete. Kindly ignore
-    #Tasks
-    Tasks=t.fetchall()
-    for i in Tasks:
-        enterRow(Tlayout,i[2],i[3],i[4],i[5])
- 
-"""Have to do the same for folders too"""
