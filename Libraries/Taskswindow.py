@@ -7,7 +7,7 @@ import mysql.connector as m
 import datetime
 import pprint
 import json
-
+##MAKE SURE THAT SUBMIT BUTTON CLOSES THE WINDOW OK?
 with open('config.json','r') as f:
     config=json.load(f)
     print(config['database'])
@@ -240,7 +240,7 @@ class TasksWindow(QtWidgets.QWidget):
         
             pprint.pprint(d)
 
-            self.close()
+            '''self.close()'''
             T=Tasks(conn)
 
             T.addTask(d['task'], d['priority'], date, d['folder'], Revivaldt=None)

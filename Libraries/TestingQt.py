@@ -6,13 +6,16 @@ from Tasks import *
 import time
 conn=m.connect(user="root",host="LocalHost",database="csp",password="0000")
 a=Tasks(conn)
+b=a.fetchall()
+
 
 class MyWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("mainwindow")
-        self.setGeometry(500, 100, 2000, 1500)
-        G.genTasksLayout(self)
+        self.setGeometry(500, 100, 1000, 1500)
+        L,S=G.genTasksLayout(self)
+        G.enterRow(L,b[0],S)
 
         
         '''L=a.fetchall()

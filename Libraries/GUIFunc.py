@@ -1,6 +1,6 @@
 import sys
 import os
-from PyQt5 import QtWidgets,QtGui
+from PyQt5 import QtWidgets,QtGui,QtCore
 import datetime
 import mysql.connector as m
 from typing import Union
@@ -23,6 +23,7 @@ def genCheckbox(task:taskobject,layout:QtWidgets.QBoxLayout, row:int,column:int)
     checkbox.setFont(FONT)
 
     layout.addWidget(checkbox,row,column)
+    return checkbox
 
 def checkbox_clicked(checkbox:QtWidgets.QCheckBox,task:taskobject):
     print(checkbox.text(),"is clicked!")
@@ -122,6 +123,10 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
     DueDate=task.dueDate
     folder=task.folder
 
+    for i in range(8):      #A vertical line is drawn at evry odd column
+        if i%2!=0:
+            genLine(layout,orientation='v',row=ID,column=i)
+
     if not spacer:
         genLabel(str(slno),layout,ID,0)
         genCheckbox(task,layout,ID,2)
@@ -130,13 +135,15 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
         genLabel(folder,layout,ID,8)
     else:
         layout.removeItem(spacer)
-        genLabel(str(slno),layout,ID,0)
+        genLabel(str(slno),layout,ID,0).setAlignment(QtCore.Qt.AlignCenter)
         genCheckbox(task,layout,ID,2)
-        genLabel(str(priority),layout,ID,4)
-        genLabel(str(DueDate),layout,ID,6)
-        genLabel(folder,layout,ID,8)
+        genLabel(str(priority),layout,ID,4).setAlignment(QtCore.Qt.AlignCenter)
+        genLabel(str(DueDate),layout,ID,6).setAlignment(QtCore.Qt.AlignCenter)
+        genLabel(folder,layout,ID,8).setAlignment(QtCore.Qt.AlignCenter)
         spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         layout.addItem(spacer,ID+1,0)
+
+    
         
     
 
@@ -176,7 +183,7 @@ def genTasksLayout(window:QtWidgets.QMainWindow):
 
     window.setLayout(tasksLayout)
 
-    return tasksLayout
+    return tasksLayout, spacer
 
 
 
