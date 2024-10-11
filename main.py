@@ -5,7 +5,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import mysql.connector as connector
 
 from Libraries import Tasks
-from Libraries import GUIFunc as Gui
+from Libraries import Gui
 
 import sys
 import json
