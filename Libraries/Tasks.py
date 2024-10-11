@@ -4,7 +4,7 @@ import datetime
 import threading
 import math
 
-DEFAULT_FOLDER_COLOR =  "#888888"
+DEFAULT_FOLDER_COLOR =  "#FFFFFF"
 TABLE_VERSION = '2.0'
 EVENT_TABLE_VERSION= '1.0'
 REV_TABLE_VERSION = '2.0'

@@ -109,12 +109,12 @@ def hideLayout(Layout:QtWidgets.QBoxLayout):
 
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
-             spacer:bool=False):
+             spacer:bool=True):
     if task==None:
         print("Task contains nothing! Try avoiding repeating tasks")
         return None
     if type(layout)!=QtWidgets.QGridLayout: 
-        print("you can use this function only for GridLayout \
+        print("you can use EnterRow function only for GridLayout \
               Try again")
         return None
     ID=task.ID
@@ -151,11 +151,17 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
         spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         layout.addItem(spacer,ID+1,0)
 
-    
-        
-    
 
 
+def count_spacers(layout):
+        spacer_count = 0
+        pos=[]
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            if isinstance(item, QtWidgets.QSpacerItem):
+                spacer_count += 1
+                pos.append(i)
+        return spacer_count, f"at pos: {pos}"
 
 
 def re_add(W:QtWidgets.QWidget,Layout:QtWidgets.QGridLayout,row,column,
@@ -168,7 +174,7 @@ def re_add(W:QtWidgets.QWidget,Layout:QtWidgets.QGridLayout,row,column,
 
 #Generating the mainGridLayout
 
-def genTasksLayout(window:QtWidgets.QMainWindow):
+def genTasksLayout(outer_Layout:Union[QtWidgets.QWidget,QtWidgets.QMainWindow]):
     tasksLayout=QtWidgets.QGridLayout()
     for i in range(8):      #A vertical line is drawn at evry odd column
         if i%2!=0:
@@ -190,9 +196,39 @@ def genTasksLayout(window:QtWidgets.QMainWindow):
     spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
     tasksLayout.addItem(spacer,1,0)
 
-    window.setLayout(tasksLayout)
+    outer_Layout.setLayout(tasksLayout)
 
+    
+    print(count_spacers(tasksLayout),"space(s) are there")
     return tasksLayout, spacer
+
+
+def genTabWidget(Layout_to_store_tabWidget:QtWidgets.QBoxLayout):
+    tab_Widget=QtWidgets.QTabWidget()
+    tab_Widget.tabBar().setFont(FONT)
+    Layout_to_store_tabWidget.addWidget(tab_Widget)
+    return tab_Widget
+
+
+class guiFolders():
+    def __init__(self,tabWidget:QtWidgets.QTabWidget):
+        self.tabWidget=tabWidget
+    
+    def addTab(self, folder_name:str):
+        tab=QtWidgets.QWidget()
+        Lyt,S=genTasksLayout(tab)
+        self.tabWidget.addTab(tab,folder_name)
+        l=t.fetchall()
+        for i in l:
+            if i.folder==folder_name:
+                enterRow(Lyt,i,True)
+
+        with conn.cursor() as cur:
+            cur.execute("SELECT Color FROM Folders WHERE Folder_name=%s",(folder_name,))
+            c=cur.fetchone()[0]
+            tab.setStyleSheet(f"background-color: {c};")
+
+
 
 
 

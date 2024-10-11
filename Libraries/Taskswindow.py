@@ -225,9 +225,12 @@ class TasksWindow(QtWidgets.QWidget):
         if day=='' and month=='':
             date=None
         else:
-            day=int(self.day.currentText().lower())
-            month=month_map[self.month.currentText().lower()]
-            date=datetime.datetime(year,month,day,hr,min,sec)
+            try:
+                day=int(self.day.currentText().lower())
+                month=month_map[self.month.currentText().lower()]
+                date=datetime.datetime(year,month,day,hr,min,sec)
+            except:
+                pass
         
 
         if c==1:
