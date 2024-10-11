@@ -16,9 +16,9 @@ class MyWindow(QtWidgets.QWidget):
         self.setGeometry(500, 100, 1000, 1500)
         L,S=G.genTasksLayout(self)
 
-        G.enterRow(L,b[0],S)
-        G.enterRow(L,b[1],S)
-        G.enterRow(L,b[2],S)
+        G.enterRow(L,b[0],True)
+        G.enterRow(L,b[1],True)
+        G.enterRow(L,b[2],True)
         c=0
         for i in range(L.count()):
             item = L.itemAt(i)

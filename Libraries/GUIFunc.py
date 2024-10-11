@@ -109,7 +109,7 @@ def hideLayout(Layout:QtWidgets.QBoxLayout):
 
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
-             spacer:QtWidgets.QSpacerItem=None):
+             spacer:bool=False):
     if task==None:
         print("Task contains nothing! Try avoiding repeating tasks")
         return None
@@ -128,27 +128,33 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
             genLine(layout,orientation='v',row=ID,column=i)
 
     if not spacer:
-        genLabel(str(slno),layout,ID,0)
-        genCheckbox(task,layout,ID,2)
-        genLabel(str(priority),layout,ID,4)
-        genLabel(str(DueDate),layout,ID,6)
-        genLabel(folder,layout,ID,8)
-    elif spacer:
-        Waste_layout=QtWidgets.QGridLayout()
-        Waste_layout.addItem(spacer)
+        for i in range(1,8,2):
+            genLine(layout,slno,i)
+        genLabel(str(slno),layout,slno,0)
 
+        genCheckbox(task,layout,slno,2)
+        genLabel(str(priority),layout,slno,4)
+        genLabel(str(DueDate),layout,slno,6)
+        genLabel(folder,layout,slno,8)
+    else:
+        lastrow = layout.rowCount()-1
+        spacer = layout.itemAtPosition(lastrow,0)
+        
         layout.removeItem(spacer)
-        genLabel(str(slno),layout,ID,0).setAlignment(QtCore.Qt.AlignCenter)
-        genCheckbox(task,layout,ID,2)
-        genLabel(str(priority),layout,ID,4).setAlignment(QtCore.Qt.AlignCenter)
-        genLabel(str(DueDate),layout,ID,6).setAlignment(QtCore.Qt.AlignCenter)
-        genLabel(folder,layout,ID,8).setAlignment(QtCore.Qt.AlignCenter)
-        layout.addItem(spacer,layout.rowCount(), 0)
-        return spacer
+        for i in range(1,8,2):
+            genLine(layout,lastrow,i)
+        genLabel(str(slno),layout,lastrow,0)
+        genCheckbox(task,layout,lastrow,2)
+        genLabel(str(priority),layout,lastrow,4)
+        genLabel(str(DueDate),layout,lastrow,6)
+        genLabel(folder,layout,lastrow,8)
+        spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        layout.addItem(spacer,ID+1,0)
 
     
         
     
+
 
 
 
