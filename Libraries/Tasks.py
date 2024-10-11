@@ -271,7 +271,7 @@ class Tasks:
             self.conn.commit()
 
             slno = self.fetchall(order_by='Tasks.slno')[-1].slno + 1
-            task=taskobject(ID,slno,msg,priority,dt,folder,RevivalType,ReviveInterval,DOC,Revivaldt)
+            task=taskobject(ID,slno,msg,priority,dt,folder,RevivalType=RevivalType,RevivalInterval=ReviveInterval,DOC=DOC,Revivaldt=Revivaldt)
 
             return task
             
@@ -401,7 +401,7 @@ class taskobject:
     revAttributes = ['RevivalType','RevivalInterval','DOC','Revivaldt']
     taskAttributes = ['ID','slno','msg','priority','dt','folder']
     folderAttributes  = ['color']
-    def __init__(self,ID,slno,msg,priority,dt,folder,color,RevivalType,RevivalInterval,DOC,Revivaldt):
+    def __init__(self,ID,slno,msg,priority,dt,folder,DOC,color=None,RevivalType=None,RevivalInterval=None,Revivaldt=None):
         self.ID = ID
         self.slno = slno
         self.msg = msg

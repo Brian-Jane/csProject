@@ -1,3 +1,4 @@
 Make 'tasks','folders' to change tabs in stacked widget
-Add functionality to the 'Add tasks' button
 Add Functionality to the Search button
+In Taskswindow, add revivaldt, revivalinterval, etc..
+Add Folderwindow to be created
