@@ -1,6 +1,5 @@
 *.pyc
 Libraries/test.py
-Libraries/Tasks.py
 Libraries/Tasktest.py
 plannertest.py
 GUI/TestingQt.py
