@@ -15,7 +15,17 @@ class MyWindow(QtWidgets.QWidget):
         self.setWindowTitle("mainwindow")
         self.setGeometry(500, 100, 1000, 1500)
         L,S=G.genTasksLayout(self)
+
         G.enterRow(L,b[0],S)
+        G.enterRow(L,b[1],S)
+        G.enterRow(L,b[2],S)
+        c=0
+        for i in range(L.count()):
+            item = L.itemAt(i)
+            if isinstance(item.widget(), QtWidgets.QSpacerItem):
+                c+=1
+        print(c)
+    
 
         
         '''L=a.fetchall()
