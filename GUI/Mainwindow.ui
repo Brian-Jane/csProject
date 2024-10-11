@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>908</width>
-    <height>753</height>
+    <width>952</width>
+    <height>628</height>
    </rect>
   </property>
   <property name="font">
@@ -22,10 +22,10 @@
    <widget class="QWidget" name="horizontalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>60</x>
-      <y>100</y>
-      <width>771</width>
-      <height>551</height>
+      <x>30</x>
+      <y>30</y>
+      <width>841</width>
+      <height>561</height>
      </rect>
     </property>
     <property name="font">
@@ -94,7 +94,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="AllTasksButton">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -106,7 +106,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_3">
+        <widget class="QPushButton" name="FoldersButton">
          <property name="font">
           <font>
            <pointsize>10</pointsize>
@@ -411,10 +411,10 @@
         <widget class="QWidget" name="gridLayoutWidget">
          <property name="geometry">
           <rect>
-           <x>20</x>
-           <y>39</y>
+           <x>40</x>
+           <y>60</y>
            <width>631</width>
-           <height>471</height>
+           <height>421</height>
           </rect>
          </property>
          <property name="font">
@@ -422,28 +422,71 @@
            <pointsize>10</pointsize>
           </font>
          </property>
-         <layout class="QGridLayout" name="Taskslayout">
-          <item row="0" column="3" rowspan="3">
-           <widget class="Line" name="line_2">
+         <layout class="QGridLayout" name="AllTasks_GridLayout">
+          <item row="0" column="2">
+           <widget class="QLabel" name="msg">
             <property name="font">
              <font>
               <pointsize>10</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
              </font>
             </property>
+            <property name="text">
+             <string>Task</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="7">
+           <widget class="Line" name="line_4">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
            </widget>
           </item>
-          <item row="0" column="1" rowspan="3">
-           <widget class="Line" name="line">
+          <item row="0" column="4">
+           <widget class="QPushButton" name="Priority">
             <property name="font">
              <font>
               <pointsize>10</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
              </font>
             </property>
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
+            <property name="text">
+             <string>Priority</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="Slno">
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Slno</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -475,39 +518,17 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="5" rowspan="3">
-           <widget class="Line" name="line_3">
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
+          <item row="0" column="1">
+           <widget class="Line" name="line_18">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QCheckBox" name="checkBox">
-            <property name="text">
-             <string>CheckBox</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="msg">
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Task</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
+          <item row="0" column="3">
+           <widget class="Line" name="line_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
             </property>
            </widget>
           </item>
@@ -539,128 +560,23 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="8">
-           <widget class="QLabel" name="label_3">
-            <property name="whatsThis">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;5&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Folder</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="whatsThis">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;5&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>1.</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="7" rowspan="3">
-           <widget class="Line" name="line_4">
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="6">
-           <widget class="QLabel" name="label_2">
-            <property name="whatsThis">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;5&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Label</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
            <spacer name="verticalSpacer_3">
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>78</width>
-              <height>308</height>
+              <width>20</width>
+              <height>40</height>
              </size>
             </property>
            </spacer>
           </item>
-          <item row="1" column="4">
-           <widget class="QLabel" name="label">
-            <property name="whatsThis">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;5&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>5</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QPushButton" name="Slno">
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Slno</string>
-            </property>
-            <property name="checkable">
-             <bool>false</bool>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-            <property name="flat">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="4">
-           <widget class="QPushButton" name="Priority">
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Priority</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="flat">
-             <bool>true</bool>
+          <item row="0" column="5">
+           <widget class="Line" name="line_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
             </property>
            </widget>
           </item>
@@ -682,24 +598,6 @@
          </property>
          <property name="placeholderText">
           <string>Search</string>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="addTasbkttn">
-         <property name="geometry">
-          <rect>
-           <x>50</x>
-           <y>520</y>
-           <width>91</width>
-           <height>31</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>+ Add Task</string>
          </property>
         </widget>
         <widget class="QPushButton" name="searchBttn">
@@ -728,6 +626,74 @@
          <property name="checked">
           <bool>false</bool>
          </property>
+        </widget>
+        <widget class="QPushButton" name="addTasbkttn">
+         <property name="geometry">
+          <rect>
+           <x>450</x>
+           <y>0</y>
+           <width>91</width>
+           <height>31</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>+ Add Task</string>
+         </property>
+        </widget>
+        <widget class="Line" name="line">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>-20</y>
+           <width>3</width>
+           <height>1000</height>
+          </rect>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>103</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+        <widget class="QComboBox" name="comboBox">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>30</y>
+           <width>69</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <item>
+          <property name="text">
+           <string>haiii</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>jsjsjs</string>
+          </property>
+         </item>
         </widget>
        </widget>
        <widget class="QWidget" name="FoldersPage">
@@ -1377,7 +1343,7 @@
      <string/>
     </property>
     <property name="pixmap">
-     <pixmap>../../../../Desktop/ssrvm_logo_9de844bc87.jpg</pixmap>
+     <pixmap>../../../Desktop/ssrvm_logo_9de844bc87.jpg</pixmap>
     </property>
     <property name="scaledContents">
      <bool>true</bool>

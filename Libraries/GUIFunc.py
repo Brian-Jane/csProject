@@ -8,12 +8,11 @@ from Libraries.Tasks import *
 
 FONT= QtGui.QFont()
 FONT.setPointSize(10)
-conn=m.connect(user='root',host='LocalHost',database='csp', password='0000')
 
-t=Tasks(conn)
-def genCheckbox(task:taskobject,layout:QtWidgets.QBoxLayout, row:int,column:int):
+def genCheckbox(task:taskobject,callback,layout:QtWidgets.QBoxLayout,
+                row:int,column:int):
     checkbox=QtWidgets.QCheckBox(task.msg)
-    checkbox.clicked.connect(lambda:checkbox_clicked(checkbox,task))
+    checkbox.clicked.connect(callback)
     checkbox.setFont(FONT)
 
     layout.addWidget(checkbox,row,column)
@@ -25,7 +24,7 @@ def checkbox_clicked(checkbox:QtWidgets.QCheckBox,task:taskobject):
 def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
     Label=QtWidgets.QLabel(data)
     if row is None: layout.addWidget(Label)
-    else: layout.addWidget(Label,row,column)
+    else: layout.addWidget(Label,row,column,1,1)
     Label.setFont(FONT)
 
 def genLineEdit(layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
@@ -44,9 +43,16 @@ def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None,
         n_instance.show()
     else:
         n_instance.show()
+def genLine(layout:QtWidgets.QBoxLayout,row,column):
+    v_line = QtWidgets.QFrame()
+    v_line.setFrameShape(QtWidgets.QFrame.VLine)  # Vertical line
+    v_line.setFrameShadow(QtWidgets.QFrame.Sunken)
+        
+        # Add the lines to the layout
+    layout.addWidget(v_line,row,column,1,1)
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
-             spacer:QtWidgets.QSpacerItem=None):
+             checkBoxCallback,spacer:bool=False):
     if task==None:
         print("Task contains nothing! Try avoiding repeating tasks")
         return None
@@ -60,22 +66,38 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
     folder=task.folder
 
     if not spacer:
+        for i in range(1,8,2):
+            genLine(layout,slno,i)
         genLabel(str(slno),layout,slno,0)
+
         genCheckbox(task,layout,slno,2)
         genLabel(str(priority),layout,slno,4)
         genLabel(str(DueDate),layout,slno,6)
         genLabel(folder,layout,slno,8)
     else:
-        layout.removeItem(spacer)
-        genLabel(str(slno),layout,slno,0)
-        genCheckbox(task,layout,slno,2)
-        genLabel(str(priority),layout,slno,4)
-        genLabel(str(DueDate),layout,slno,6)
-        genLabel(folder,layout,slno,8)
-        spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        layout.addItem(spacer,slno+1,0)
+        lastrow = layout.rowCount()-1
+        spacer = layout.itemAtPosition(lastrow,0)
         
-    
+        layout.removeItem(spacer)
+        for i in range(1,8,2):
+            genLine(layout,lastrow,i)
+        genLabel(str(slno),layout,lastrow,0)
+        genCheckbox(task,checkBoxCallback,layout,lastrow,2)
+        genLabel(str(priority),layout,lastrow,4)
+        genLabel(str(DueDate),layout,lastrow,6)
+        genLabel(folder,layout,lastrow,8)
+        spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        layout.addItem(spacer,lastrow+1,0)
+def deleteRow(layout:QtWidgets.QGridLayout,row):
+    for i in range(layout.columnCount()):
+        item = layout.itemAtPosition(row,i)
+        if item is not None:
+            layout.removeItem(item)
+            if item.spacerItem():
+                del item
+            else:
+                widget = item.widget()
+                widget.deleteLater()
 
 
 

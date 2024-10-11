@@ -53,8 +53,9 @@ class Filter:
         self.conditions = {self.priorityHigherThan:"Tasks.Priority>",
                            self.priorityLowerThan:"Tasks.Priority<",
                            self.dateBefore:"Tasks.DueDate<",
-                           self.folder:"Tasks.Folder in "}
-        self.folders = ()
+                           self.folder:"Tasks.Folder in ",
+                           self.completedTask:"Tasks.isCompleted="}
+        self.folders = set()
         self.param = {}
     def priorityLowerThan(self,num:int):
         """ the priority is lower than num"""
@@ -66,8 +67,17 @@ class Filter:
         """the due date is before given date"""
         self.param[self.dateBefore] = date
     def folder(self,folder:str):
-        self.folders += (folder,)
+        self.folders.add(folder)
         self.param[self.folder] = self.folders
+    def completedTask(self,status:bool):
+        """task must be completed (true) or not completed(false)"""
+        self.param[self.completedTask] = status
+    def undo(self,function):
+        """undoes the effect of any of the functions (removes that parameter)"""
+        self.param.pop(function)
+    def undoFolder(self,folder:str):
+        """removes that folder from the list"""
+        self.folders.remove(folder)
     def generateWhereClause(self):
         conditions = []
         values = ()
@@ -88,7 +98,6 @@ class Tasks:
         tables = self.getTables()
         tv = fv = rv = 0 #folder and task version
         for i in tables:
-            print(i)
             if i[0] == 'folders':fv = i[1]
             elif i[0] == 'tasks':tv = i[1]
             elif i[0] == 'revt':rv = i[1]
@@ -139,7 +148,10 @@ class Tasks:
             self.checkRevival(False)
             self.conn.commit()
 
-    
+    def refresh(self):
+        self.conn.reconnect() #FOR DEBUGGING
+        self.checkRevival()
+
     def checkConnection(func):
         #checks if the connection has terminated, and can be used to handle that exception,
         # along with  any other common exceptions that are to be handled by more than 1 function
@@ -344,6 +356,7 @@ class Tasks:
             clause = " GROUP BY %s" + clause
             param = (folder,)+param 
         TaskList = []
+    
         with self.conn.cursor() as cur:
             cur.execute(f"""SELECT {','.join(taskobject.attributes)}
                         FROM Tasks LEFT JOIN Revt ON Tasks.ID = Revt.ID
