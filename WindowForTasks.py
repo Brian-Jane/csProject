@@ -184,6 +184,7 @@ class TasksWindow(QtWidgets.QWidget):
             # Uncheck the button explicitly
             checked_button.setChecked(False)
             self.button_group1.setExclusive(True)
+            self.priority=None
 
     def Repeat_clicked(self):
         if self.Repeat.isChecked():
@@ -235,7 +236,7 @@ class TasksWindow(QtWidgets.QWidget):
         
         year=int(self.year.currentText())
         month=self.month.currentText().lower()
-        print(f"Month: {month}, Type: {type(month)}")
+        '''print(f"Month: {month}, Type: {type(month)}")'''
         day=self.day.currentText().lower()      #If Day or month is not provided, day=month=''
 
         hr=self.timeEdit.time().hour()
@@ -264,13 +265,14 @@ class TasksWindow(QtWidgets.QWidget):
         if self.priority is None:self.priority=5
 
 
-        c=0
-    
+        c=1     #'c' keeps track of any error in runtime. 
+                #IF c=1, only then the program will execute
+
         if not self.task.text():
             G.produceError("Please enter the task")
             c=0
         else:
-            print(f"Month: {month}, Type: {type(month)}")
+            '''print(f"Month: {month}, Type: {type(month)}")'''
             if self.is_valid_date(day,month):
                 c=1
             else:
@@ -287,8 +289,7 @@ class TasksWindow(QtWidgets.QWidget):
                 c=1
                 if date <= datetime.datetime.now():
                     c=0
-                    G.produceError("Date has already passed")
-                    
+                    G.produceError("Date has already passed")  
             except:
                 pass
 
@@ -309,11 +310,11 @@ class TasksWindow(QtWidgets.QWidget):
         
             pprint.pprint(d)
 
-############self.close()############ IMPORTANT!
-
             if not self.T.searchTask(d['task']):
                 self.T.addTask(d['task'], d['priority'], date, d['folder'],
                             ReviveInterval=d['RevivalInterval'],RevivalType=d['RevivalType'])
+                
+                self.close()  #Close the window when submit is clicked
             elif self.T.searchTask(d['task']):
                 G.produceError('Task already present')
                   
