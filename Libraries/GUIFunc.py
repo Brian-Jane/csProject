@@ -5,7 +5,7 @@ import datetime
 import mysql.connector as m
 from typing import Union
 
-from Tasks import *
+from Libraries.Tasks import *
 
 FONT= QtGui.QFont()
 FONT.setPointSize(10)
@@ -14,20 +14,21 @@ HEADINGFONT= QtGui.QFont()
 HEADINGFONT.setPointSize(10)
 HEADINGFONT.setBold(True)
 
-conn=m.connect(user='root',host='LocalHost',database='csp', password='0000')
+'''conn=m.connect(user='root',host='LocalHost',database='csp', password='0000')
 
-t=Tasks(conn)
-def genCheckbox(task:taskobject,layout:QtWidgets.QBoxLayout, row:int,column:int):
+t=Tasks(conn)'''
+
+def genCheckbox(task:taskobject,layout:QtWidgets.QBoxLayout, row:int,column:int, T:Tasks):
     checkbox=QtWidgets.QCheckBox(task.msg)
-    checkbox.clicked.connect(lambda:checkbox_clicked(checkbox,task))
+    checkbox.clicked.connect(lambda:checkbox_clicked(checkbox,task,T))
     checkbox.setFont(FONT)
 
     layout.addWidget(checkbox,row,column)
     return checkbox
 
-def checkbox_clicked(checkbox:QtWidgets.QCheckBox,task:taskobject):
+def checkbox_clicked(checkbox:QtWidgets.QCheckBox,task:taskobject, T:Tasks):
     print(checkbox.text(),"is clicked!")
-    t.completeTask(task.ID)
+    T.completeTask(task.ID)
 
 def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,
              l:list=None):
@@ -58,15 +59,23 @@ def genRadioBttn(data,layout:QtWidgets.QBoxLayout,row:int=None,column:int=None, 
     return Radiobttn
 
 
-def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None, close:bool=False):
+def newWindow(nWindow_instance:QtWidgets.QMainWindow, cWindow_instance:QtWidgets.QMainWindow=None, close:bool=False):
     #If close is True, this function will close the current window
-    n_instance=nWindow()
     if close:
-        c_instance=cWindow()
-        c_instance.close()
-        n_instance.show()
+        cWindow_instance.close()
+        nWindow_instance.show()
     else:
-        n_instance.show()
+        nWindow_instance.show()
+
+
+    '''if __name__=='__main__':
+        app = QtWidgets.QApplication(sys.argv)
+
+        window = nWindow()
+
+        window.show()
+
+        sys.exit(app.exec_())'''
 
 
 def genComboBox(Items:list,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,
@@ -99,6 +108,36 @@ def genLine(Layout:QtWidgets.QBoxLayout, orientation:str='v', row:int=None, colu
     
         return horizontal_line
 
+
+
+def genSpacer(layout:QtWidgets.QBoxLayout,row:int=None,column:int=None,Orientation='v'):
+    if Orientation=='v':
+        spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        layout.addItem(spacer)
+        if row!=None: layout.addItem(spacer,row,column)
+        elif row==None: layout.addItem(spacer)
+    if Orientation=='h':
+        spacer=QtWidgets.QSpacerItem(40,20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        layout.addItem(spacer)
+        if row!=None: layout.addItem(spacer,row,column)
+        elif row==None: layout.addItem(spacer)
+
+    return spacer
+
+def invisible(L:list):
+    for widget in L:
+        widget.hide()
+
+
+def widgets_in_layout(Layout:QtWidgets.QBoxLayout,widget_type):
+    L=[]
+    for i in Layout.findChildren(widget_type):
+        L.append(i)
+
+    return L
+
+
+
 def hideLayout(Layout:QtWidgets.QBoxLayout):
     for i in range(Layout.count()):
         item=Layout.itemAt(i)
@@ -109,9 +148,12 @@ def hideLayout(Layout:QtWidgets.QBoxLayout):
 
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
-             spacer:bool=True):
+             spacer:bool=True,T:Tasks=None):
+    if T is None:
+        print("Enter Tasks instance (T)     GUIFunc\Line-141")
+
     if task==None:
-        print("Task contains nothing! Try avoiding repeating tasks")
+        print("Task contains nothing! Try avoiding repeating tasks      GUIFunc\Line-144")
         return None
     if type(layout)!=QtWidgets.QGridLayout: 
         print("you can use EnterRow function only for GridLayout \
@@ -132,7 +174,7 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
             genLine(layout,slno,i)
         genLabel(str(slno),layout,slno,0)
 
-        genCheckbox(task,layout,slno,2)
+        genCheckbox(task,layout,slno,2,T)
         genLabel(str(priority),layout,slno,4)
         genLabel(str(DueDate),layout,slno,6)
         genLabel(folder,layout,slno,8)
@@ -143,8 +185,10 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
         layout.removeItem(spacer)
         for i in range(1,8,2):
             genLine(layout,lastrow,i)
+        color = QtGui.QColor(task.color)
+
         genLabel(str(slno),layout,lastrow,0)
-        genCheckbox(task,layout,lastrow,2)
+        genCheckbox(task,layout,lastrow,2,T)
         genLabel(str(priority),layout,lastrow,4)
         genLabel(str(DueDate),layout,lastrow,6)
         genLabel(folder,layout,lastrow,8)
@@ -170,6 +214,10 @@ def re_add(W:QtWidgets.QWidget,Layout:QtWidgets.QGridLayout,row,column,
     if cspan is None and rspan is None: Layout.addWidget(W,row,column)
     if cspan is not None and rspan is None: Layout.addWidget(W,row,column,columnSpan=cspan)
 
+
+
+
+
 #------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #Generating the mainGridLayout
@@ -180,12 +228,16 @@ def genTasksLayout(outer_Layout:Union[QtWidgets.QWidget,QtWidgets.QMainWindow]):
         if i%2!=0:
             genLine(tasksLayout,orientation='v',row=0,column=i)
     
+    bttn_group = QtWidgets.QButtonGroup()
+
     def checkableBttn(text:str, column):
         bttn=QtWidgets.QPushButton(text)
         bttn.setCheckable(True)
         bttn.setFlat(True)
         bttn.setFont(HEADINGFONT)
         tasksLayout.addWidget(bttn,0,column)
+        bttn_group.addButton(bttn)
+
 
     checkableBttn('Slno',0)
     checkableBttn('Task',2)
@@ -203,6 +255,38 @@ def genTasksLayout(outer_Layout:Union[QtWidgets.QWidget,QtWidgets.QMainWindow]):
     return tasksLayout, spacer
 
 
+def deleteRow(tasksLayout:QtWidgets.QGridLayout,row:int):
+    for column in range(tasksLayout.columnCount()):
+            item = tasksLayout.itemAtPosition(row, column)
+            if item is not None:
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()  # Delete the widget
+                tasksLayout.removeItem(item)
+
+
+def enterAllTasks(tasklayout:QtWidgets.QGridLayout,T:Tasks):
+    for i in T.fetchall():
+        enterRow(tasklayout,i,True)
+
+def isAllTasks(tasklayout:QtWidgets.QGridLayout, T:Tasks):
+    IDs=[]
+    for i in range(1,tasklayout.rowCount()):
+        widget=tasklayout.itemAtPosition(i,0).widget()
+        if widget is not None:
+            print(type(tasklayout.itemAtPosition(i,0)), i)
+            IDs.append(int(tasklayout.itemAtPosition(i,0).widget().text()))
+
+    for i in T.fetchall():
+        if i.ID not in IDs:
+            return False
+    else:
+        return True
+
+
+
+
+
 def genTabWidget(Layout_to_store_tabWidget:QtWidgets.QBoxLayout):
     tab_Widget=QtWidgets.QTabWidget()
     tab_Widget.tabBar().setFont(FONT)
@@ -211,19 +295,21 @@ def genTabWidget(Layout_to_store_tabWidget:QtWidgets.QBoxLayout):
 
 
 class guiFolders():
-    def __init__(self,tabWidget:QtWidgets.QTabWidget):
+    def __init__(self,tabWidget:QtWidgets.QTabWidget,T:Tasks, conn:MySQLConnection):
         self.tabWidget=tabWidget
+        self.T=T
+        self.conn=conn
     
     def addTab(self, folder_name:str):
         tab=QtWidgets.QWidget()
         Lyt,S=genTasksLayout(tab)
         self.tabWidget.addTab(tab,folder_name)
-        l=t.fetchall()
+        l=self.T.fetchall()
         for i in l:
             if i.folder==folder_name:
-                enterRow(Lyt,i,True)
+                enterRow(Lyt,i,True,self.T)
 
-        with conn.cursor() as cur:
+        with self.conn.cursor() as cur:
             cur.execute("SELECT Color FROM Folders WHERE Folder_name=%s",(folder_name,))
             c=cur.fetchone()[0]
             tab.setStyleSheet(f"background-color: {c};")

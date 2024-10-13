@@ -1,26 +1,19 @@
 import sys
 from PyQt5 import QtWidgets,QtGui
-from Tasks import Tasks,taskobject
+from Libraries.Tasks import Tasks,taskobject
 import time
-import GUIFunc as G
+import Libraries.GUIFunc as G
 import mysql.connector as m
 import datetime
 import pprint
 import json
 ##MAKE SURE THAT SUBMIT BUTTON CLOSES THE WINDOW OK?
-with open('config.json','r') as f:
-    config=json.load(f)
-    print(config['database'])
-    conn=m.connect(user='root',host='LocalHost',
-                   database=config['database'],
-                   password=config['password'])
-
-
 
 class TasksWindow(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, T:Tasks):
+        self.T=T
         super().__init__()
-        self.setWindowTitle("mainwindow")
+        self.setWindowTitle("Taskswindow")
         self.setGeometry(500, 100, 1000,900)
         self.mainLayout=QtWidgets.QGridLayout()
 
@@ -41,9 +34,8 @@ class TasksWindow(QtWidgets.QWidget):
         W2=G.genLabel("Folder",self.mainLayout,2,0)
         W2.setFont(G.HEADINGFONT)
 
-        T=Tasks(conn)
         folders=[None]
-        for i in T.fetchFolders():
+        for i in self.T.fetchFolders():
             folders.append(i[0])
 
         self.folder=G.genComboBox(folders,self.mainLayout,2,1)
@@ -94,7 +86,7 @@ class TasksWindow(QtWidgets.QWidget):
         self.layout2=QtWidgets.QHBoxLayout()
         self.button_group1=QtWidgets.QButtonGroup()
         for i in range(1,11):
-            G.genRadioBttn(i,self.layout2,bttngrp=self.button_group1)
+            self.rBttn=G.genRadioBttn(i,self.layout2,bttngrp=self.button_group1)
         
         self.button_group1.buttonClicked.connect(self.button_group1_clicked)
 
@@ -108,13 +100,15 @@ class TasksWindow(QtWidgets.QWidget):
 
 
         #Row-10
-        Repeat=QtWidgets.QPushButton('Repeat -->')
-        Repeat.setFlat(True)
-        Repeat.setFont(G.HEADINGFONT)
-        Repeat.clicked.connect(self.Repeat_clicked)
-        self.mainLayout.addWidget(Repeat,10,0)
+        self.Repeat=QtWidgets.QPushButton('Repeat -->')
+        self.Repeat.setFlat(True)
+        self.Repeat.setFont(G.HEADINGFONT)
+        self.Repeat.setCheckable(True)
+        self.Repeat.clicked.connect(self.Repeat_clicked)
+        self.mainLayout.addWidget(self.Repeat,10,0)
         
         self.Revtype=None
+        self.RevIntrvl=None
         self.layoutFor_E_A=QtWidgets.QGridLayout()
         self.groupFor_E_A=QtWidgets.QButtonGroup()
         self.ET=G.genRadioBttn('Every Task',self.layoutFor_E_A,bttngrp=self.groupFor_E_A,row=0,column=0)
@@ -133,19 +127,24 @@ class TasksWindow(QtWidgets.QWidget):
         self.Daily=G.genRadioBttn('Daily',self.layoutForIntrvl,0,0,self.groupForStdIntrvl)
         self.Weekly=G.genRadioBttn('Weekly',self.layoutForIntrvl,1,0,self.groupForStdIntrvl)
         self.Monthly=G.genRadioBttn('Monthly',self.layoutForIntrvl,2,0,self.groupForStdIntrvl)
+        self.groupForStdIntrvl.buttonClicked.connect(self.grpForSTdIntrvl_clicked)
         
         h_spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.layoutForIntrvl.addItem(h_spacer,0,1)
 
         self.customBttn=QtWidgets.QPushButton('Custom')
         self.customBttn.setFont(G.FONT)
+        self.customBttn.setCheckable(True)
         self.layoutForIntrvl.addWidget(self.customBttn,0,2)
         self.customBttn.clicked.connect(self.Custom_clicked)
 
         self.layoutForCustom=QtWidgets.QGridLayout()
-        G.genLabel("Repeat...",self.layoutForCustom,0,0)
-        G.genLineEdit(self.layoutForCustom,1,0).setText('1')
-        G.genComboBox(['hours','days','weeks','months'],self.layoutForCustom,1,2)
+        self.Label=G.genLabel("Repeat...",self.layoutForCustom,0,0)
+        self.no=G.genLineEdit(self.layoutForCustom,1,0)
+        self.no.setText('1')
+        self.revCombo=G.genComboBox(['hours','days','weeks','months'],self.layoutForCustom,1,2)
+
+        
 
 
         #Row-12
@@ -167,19 +166,20 @@ class TasksWindow(QtWidgets.QWidget):
 #Buttons Functions --->
 
     def Repeat_clicked(self):
-        self.ET.show()
-        self.AT.show()
-        self.mainLayout.addLayout(self.layoutForIntrvl,11,0,1,2)
+        if self.Repeat.isChecked():
+            self.mainLayout.addLayout(self.layoutForIntrvl,11,0,1,2)
+            self.ET.show()
+            self.AT.show()
+        else:
+            G.invisible([self.ET,self.AT])
 
     def Custom_clicked(self):
         self.checked_bttn=self.groupForStdIntrvl.checkedButton()
         if self.checked_bttn:
             print(self.checked_bttn.text())
             self.checked_bttn.setCheckable(False)
-            print(self.groupForStdIntrvl.checkedButton())
         self.layoutForIntrvl.addLayout(self.layoutForCustom,1,2,2,1)
 
-        
 
     def groupFor_E_A_clicked(self,button: QtWidgets.QPushButton):
         self.Revtype=button.text()
@@ -187,10 +187,24 @@ class TasksWindow(QtWidgets.QWidget):
         if self.Revtype.lower()=='after task': self.Revtype='a'
 
 
+    def grpForSTdIntrvl_clicked(self, button:QtWidgets.QPushButton):
+        if not self.customBttn.isChecked():
+            if self.Daily.isChecked():
+                self.RevIntrvl= datetime.timedelta(hours=24).total_seconds()
+            if self.Weekly.isChecked():
+                self.RevIntrvl= datetime.timedelta(weeks=1).total_seconds()
+            if self.Monthly.isChecked():
+                self.RevIntrvl= datetime.timedelta(days=30).total_seconds()
+        elif self.customBttn.isChecked():
+            self.RevIntrvl=None
+            button.setCheckable(False)
+        print(self.RevIntrvl)
+
     #Priority 
     def button_group1_clicked(self,button:QtWidgets.QPushButton):
         self.priority=int(button.text())
-
+        print(button.isChecked())
+        
     
 
 
@@ -204,8 +218,24 @@ class TasksWindow(QtWidgets.QWidget):
         hr=self.timeEdit.time().hour()
         min=self.timeEdit.time().minute()
         sec=self.timeEdit.time().second()
+        self.DOC=datetime.datetime.now()
 
-        #What_is_clicked tells us which radiobutton is clicked
+        if self.Repeat.isChecked():
+            self.Revtype=self.Revtype
+
+            if not self.customBttn.isChecked():
+                self.RevIntrvl=int(self.RevIntrvl)
+            elif self.customBttn.isChecked():
+                if self.revCombo.currentText().lower()=='months':
+                    self.RevIntrvl=int(datetime.timedelta(days=int(self.no.text())*30).total_seconds())
+                if self.revCombo.currentText().lower() == 'weeks':
+                    self.RevIntrvl=int(datetime.timedelta(days=int(self.no.text())*7).total_seconds())
+                if self.revCombo.currentText().lower() == 'days':
+                    self.RevIntrvl=int(datetime.timedelta(days=int(self.no.text())).total_seconds())
+                if self.revCombo.currentText().lower() == 'hours':
+                    self.RevIntrvl=int(datetime.timedelta(hours=int(self.no.text())).total_seconds())
+
+            self.DOC=datetime.datetime.now()
 
         
         if self.priority is None:self.priority=5
@@ -231,22 +261,31 @@ class TasksWindow(QtWidgets.QWidget):
                 date=datetime.datetime(year,month,day,hr,min,sec)
             except:
                 pass
-        
+    
 
         if c==1:
             d={
                 'task': self.task.text(), 
                  'priority': int(self.priority), 
                  'date' : date,
-                 'folder':self.folder.currentText()
+                 'folder':self.folder.currentText(),
+                 'RevivalInterval':self.RevIntrvl,
+                 'RevivalType':self.Revtype,
+                 'DOC':self.DOC
                     }
+            
+            if d['folder']=='None':
+                d['folder']=None
         
             pprint.pprint(d)
 
-            '''self.close()'''
-            T=Tasks(conn)
+############self.close()############ IMPORTANT!
 
-            T.addTask(d['task'], d['priority'], date, d['folder'], Revivaldt=None)
+            if not self.T.searchTask(d['task']):
+                self.T.addTask(d['task'], d['priority'], date, d['folder'],
+                            ReviveInterval=d['RevivalInterval'],RevivalType=d['RevivalType'])
+            if self.T.searchTask(d['task']):
+                G.produceError('Task already present')
                   
 
     def is_valid_date(self, day: int, month: str):
@@ -340,11 +379,23 @@ class TasksWindow(QtWidgets.QWidget):
         
 
 
-app = QtWidgets.QApplication(sys.argv)
 
-window = TasksWindow()
+with open('config.json','r') as f:
+    config=json.load(f)
+    conn=m.connect(user='root',host='LocalHost',
+                   database=config['database'],
+                   password=config['password'])
 
-window.show()
 
-sys.exit(app.exec_())
+T=Tasks(conn)
+
+
+if __name__=='__main__':
+    app = QtWidgets.QApplication(sys.argv)
+
+    window = TasksWindow(T)
+
+    window.show()
+
+    sys.exit(app.exec_())
 

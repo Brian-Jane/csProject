@@ -271,7 +271,7 @@ class Tasks:
             self.conn.commit()
 
             slno = self.fetchall(order_by='Tasks.slno')[-1].slno + 1
-            task=taskobject(ID,slno,msg,priority,dt,folder,RevivalType=RevivalType,RevivalInterval=ReviveInterval,DOC=DOC,Revivaldt=Revivaldt)
+            task=taskobject(ID,slno,msg,priority,dt,folder,RevivalType=RevivalType,RevivalInterval=ReviveInterval,DOC=DOC,Revivaldt=Revivaldt,color=DEFAULT_FOLDER_COLOR)
 
             return task
             
@@ -318,9 +318,27 @@ class Tasks:
         if Lv1[1:]:self.execute(query1,Lv1)
         if Lv2[1:]:self.execute(query2,Lv2)
         self.conn.commit()
+
+    def searchTask(self, task:str):
+        TaskList=[]
+        with self.conn.cursor() as cur:
+            cur.execute(f"""SELECT {','.join(taskobject.attributes)}
+                        FROM Tasks LEFT JOIN Revt ON Tasks.ID = Revt.ID
+                        LEFT JOIN Folders ON Tasks.Folder = Folders.folder_name
+                        WHERE msg='{task}'""")
+            for i in cur:
+                t = taskobject(*i) #passes the tuple i as arguments
+                TaskList.append(t)
+        return TaskList
+    
     def addFolder(self, folder_name:str, colorhex:str = DEFAULT_FOLDER_COLOR):
+        for i,c in self.fetchFolders():
+            if i == folder_name:
+                print("don't repeat folders")
+                return None
         self.execute(f"INSERT INTO Folders(Folder_name,color) VALUES('{folder_name}', '{colorhex}')")
         self.conn.commit()
+        return (folder_name,colorhex)
     
     def delFolder(self,folder_name:str):
         self.execute(f"DELETE FROM FOLDERS WHERE folder_name='{folder_name}'")
@@ -401,7 +419,7 @@ class taskobject:
     revAttributes = ['RevivalType','RevivalInterval','DOC','Revivaldt']
     taskAttributes = ['ID','slno','msg','priority','dt','folder']
     folderAttributes  = ['color']
-    def __init__(self,ID,slno,msg,priority,dt,folder,DOC,color=None,RevivalType=None,RevivalInterval=None,Revivaldt=None):
+    def __init__(self,ID,slno,msg,priority,dt,folder,DOC,color,RevivalType=None,RevivalInterval=None,Revivaldt=None):
         self.ID = ID
         self.slno = slno
         self.msg = msg
@@ -420,6 +438,7 @@ msg:{self.msg}
 priority:{self.priority}
 dueDate:{self.dueDate}
 folder:{self.folder}
+color:{self.color}
 revType:{self.RevType}
 revInterval:{self.RevInterval}
 doc:{self.DOC}
