@@ -329,6 +329,7 @@ class Tasks:
             for i in cur:
                 t = taskobject(*i) #passes the tuple i as arguments
                 TaskList.append(t)
+        print(len(TaskList),"items in TaskList")
         return TaskList
     
     def addFolder(self, folder_name:str, colorhex:str = DEFAULT_FOLDER_COLOR):
