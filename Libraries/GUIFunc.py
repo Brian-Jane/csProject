@@ -18,7 +18,8 @@ HEADINGFONT.setBold(True)
 
 t=Tasks(conn)'''
 
-def genCheckbox(task:taskobject,layout:QtWidgets.QBoxLayout, row:int,column:int, T:Tasks):
+def genCheckbox(task:taskobject,layout:QtWidgets.QBoxLayout, row:int,column:int, T:Tasks) ->QtWidgets.QCheckBox: 
+    """Generates a Checkbox"""
     checkbox=QtWidgets.QCheckBox(task.msg)
     checkbox.clicked.connect(lambda:checkbox_clicked(checkbox,task,T))
     checkbox.setFont(FONT)
@@ -31,7 +32,8 @@ def checkbox_clicked(checkbox:QtWidgets.QCheckBox,task:taskobject, T:Tasks):
     T.completeTask(task.ID)
 
 def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,
-             l:list=None):
+             l:list=None) ->QtWidgets.QLabel:
+    """Generates a Label"""
     Label=QtWidgets.QLabel(data)
     if row is None: layout.addWidget(Label)
     else: layout.addWidget(Label,row,column)
@@ -39,7 +41,8 @@ def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,
     if l: l.append(Label)
     return Label
 
-def genLineEdit(layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
+def genLineEdit(layout:QtWidgets.QBoxLayout, row:int=None, column:int=None) ->QtWidgets.QLineEdit:
+    """Genrates a LineEdit(Textbox)"""
     LineEdit=QtWidgets.QLineEdit()
     if (row,column)==(None,None): layout.addWidget(LineEdit)
     else: layout.addWidget(LineEdit,row,column)
@@ -47,8 +50,8 @@ def genLineEdit(layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
     return LineEdit
 
 def genRadioBttn(data,layout:QtWidgets.QBoxLayout,row:int=None,column:int=None, bttngrp:QtWidgets.QButtonGroup=None,
-                 l:list=None):
-
+                 l:list=None) ->QtWidgets.QRadioButton:
+    """Generates a RadioBttn"""
     Radiobttn=QtWidgets.QRadioButton(str(data))
     Radiobttn.setFont(FONT)
     if row is None: layout.addWidget(Radiobttn)
@@ -60,7 +63,7 @@ def genRadioBttn(data,layout:QtWidgets.QBoxLayout,row:int=None,column:int=None, 
 
 
 def newWindow(nWindow_instance:QtWidgets.QMainWindow, cWindow_instance:QtWidgets.QMainWindow=None, close:bool=False):
-    #If close is True, this function will close the current window
+    """If close is True, this function will close the current window"""
     if close:
         cWindow_instance.close()
         nWindow_instance.show()
@@ -68,18 +71,10 @@ def newWindow(nWindow_instance:QtWidgets.QMainWindow, cWindow_instance:QtWidgets
         nWindow_instance.show()
 
 
-    '''if __name__=='__main__':
-        app = QtWidgets.QApplication(sys.argv)
-
-        window = nWindow()
-
-        window.show()
-
-        sys.exit(app.exec_())'''
-
 
 def genComboBox(Items:list,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,
-                l:list=None):   
+                l:list=None) ->QtWidgets.QComboBox:  
+    """Generates a ComboBox(DropDown Box)""" 
     combo=QtWidgets.QComboBox()
     for i in Items:
         combo.addItem(str(i))
@@ -91,7 +86,8 @@ def genComboBox(Items:list,layout:QtWidgets.QBoxLayout, row:int=None, column:int
     if l: l.append(combo)
     return combo
 
-def genLine(Layout:QtWidgets.QBoxLayout, orientation:str='v', row:int=None, column:int=None, rspan:int=None, cspan:int=None):
+def genLine(Layout:QtWidgets.QBoxLayout, orientation:str='v', row:int=None, column:int=None, rspan:int=None, cspan:int=None) ->QtWidgets.QFrame:
+    """Genrates a Line (Horizontal or vertical)"""
     if orientation=='v':    #Vertical Line
         vertical_line = QtWidgets.QFrame()
         vertical_line.setFrameShape(QtWidgets.QFrame.VLine)
@@ -110,7 +106,8 @@ def genLine(Layout:QtWidgets.QBoxLayout, orientation:str='v', row:int=None, colu
 
 
 
-def genSpacer(layout:QtWidgets.QBoxLayout,row:int=None,column:int=None,Orientation='v'):
+def genSpacer(layout:QtWidgets.QBoxLayout,row:int=None,column:int=None,Orientation='v') ->QtWidgets.QSpacerItem:
+    """Generates a spacer Item. It is only for display purpose. User can't interact with it"""
     if Orientation=='v':
         spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         layout.addItem(spacer)
@@ -149,6 +146,8 @@ def hideLayout(Layout:QtWidgets.QBoxLayout):
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
              spacer:bool=True,T:Tasks=None):
+    """Enters a row in the tasks layout, where all the tasks are there"""
+
     if T is None:
         print("Enter Tasks instance (T)     GUIFunc\Line-141")
 
@@ -197,6 +196,7 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
 
 
 
+
 def count_spacers(layout):
         spacer_count = 0
         pos=[]
@@ -223,6 +223,8 @@ def re_add(W:QtWidgets.QWidget,Layout:QtWidgets.QGridLayout,row,column,
 #Generating the mainGridLayout
 
 def genTasksLayout(outer_Layout:Union[QtWidgets.QWidget,QtWidgets.QMainWindow]):
+    """An Important function.
+    Genrates the tasks layout to display and store the user's tasks."""
     tasksLayout=QtWidgets.QGridLayout()
     for i in range(8):      #A vertical line is drawn at evry odd column
         if i%2!=0:
@@ -251,7 +253,7 @@ def genTasksLayout(outer_Layout:Union[QtWidgets.QWidget,QtWidgets.QMainWindow]):
     outer_Layout.setLayout(tasksLayout)
 
     
-    print(count_spacers(tasksLayout),"space(s) are there")
+    #print(count_spacers(tasksLayout),"space(s) are there")
     return tasksLayout, spacer
 
 
@@ -320,13 +322,14 @@ class guiFolders():
 
 
 
-
 #------------------------------------------------------------------------------------------------------------------------------------------------------------
 def produceError(errormsg):
+    """Produces error when required"""
     e=ErrorWindow(errormsg)
     e.show()
 
 class ErrorWindow(QtWidgets.QWidget):
+    
     def __init__(self, error:str):
         super().__init__()
         self.setWindowTitle("Error")

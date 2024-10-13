@@ -158,7 +158,9 @@ class Tasks:
             func(self,*args,**kwargs)
         return wrapper
     
-    def getTables(self):#returns a list of all tables with its versions in the database
+    def getTables(self):
+        """returns a list of all tables with its versions in the database"""
+
         with self.conn.cursor() as cur:
             cur.execute(f"SELECT table_name, table_comment FROM information_schema.tables\
                         WHERE table_schema='{self.conn.database}'") #queries all the tables from database
@@ -203,6 +205,7 @@ class Tasks:
         if commit:self.conn.commit()
 
     def completeTask(self,ID:int):
+        """Completes Task"""
         with self.conn.cursor() as cur:
             cur.execute(f"SELECT RevivalInterval, RevivalType, DOC FROM RevT WHERE ID={ID}")
             L = cur.fetchall()            
@@ -217,6 +220,7 @@ class Tasks:
                 cur.execute("UPDATE RevT SET Revivaldt=%s WHERE ID = %s",(Revdt,ID))
             cur.execute(f"UPDATE Tasks SET isCompleted=TRUE WHERE ID={ID}")
         self.conn.commit()
+
     def getRevdt(self,ID:int):
         with self.conn.cursor() as cur:
             cur.execute(f"SELECT RevivalInterval, RevivalType, DOC FROM RevT WHERE ID={ID}")
@@ -231,7 +235,8 @@ class Tasks:
                     Revdt = doc + datetime.timedelta(seconds=n * RevInterval)
                 return Revdt
 
-    def isCompleted(self,ID:int):
+    def isCompleted(self,ID:int) ->bool:
+        """Checks whether a Task is completed"""
         try:
             with self.conn.cursor() as cur:
                 cur.execute("SELECT isCompleted FROM Tasks WHERE ID=%s",(ID,) )
@@ -241,6 +246,7 @@ class Tasks:
 
     def addTask(self, msg: str, priority: int = 5, dt: datetime.datetime = None, folder: str = None,
                 ReviveInterval: int = None, Revivaldt:datetime.datetime=None, RevivalType:str = 'e' ):
+        """Adds task"""
         # Prepare the SQL statement with placeholders
         # Revivaldt must not be given for Recurring functions
         DOC= datetime.datetime.now()
@@ -316,7 +322,8 @@ class Tasks:
         if Lv2[1:]:self.execute(query2,Lv2)
         self.conn.commit()
 
-    def searchTask(self, task:str):
+    def searchTask(self, task:str) ->list:
+        """Searches for a task"""
         TaskList=[]
         with self.conn.cursor() as cur:
             cur.execute(f"""SELECT {','.join(taskobject.attributes)}
@@ -330,6 +337,7 @@ class Tasks:
         return TaskList
     
     def addFolder(self, folder_name:str, colorhex:str = DEFAULT_FOLDER_COLOR):
+        """Adds a Folder"""
         for i,c in self.fetchFolders():
             if i == folder_name:
                 print("don't repeat folders")
@@ -339,11 +347,12 @@ class Tasks:
         return (folder_name,colorhex)
     
     def delFolder(self,folder_name:str):
+        """Deletes a folder"""
         self.execute(f"DELETE FROM FOLDERS WHERE folder_name='{folder_name}'")
         self.conn.commit()
     
     def updateFolder(self,old_folder_name:str, new_folder_name:str, colorhex:str=''):
-        print(colorhex)
+        """Updates Folder"""
         if colorhex:
             self.execute(f"UPDATE Folders SET folder_name='{new_folder_name}',color='{colorhex}'\
                         WHERE folder_name='{old_folder_name}'")
