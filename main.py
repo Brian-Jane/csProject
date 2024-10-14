@@ -56,8 +56,7 @@ class TasksPage:
         taskButtonGroup.setExclusive(True)
         
         def searchTask(checked:bool):
-            if searchbttn.isChecked() ^ checked:
-                searchbttn.setChecked(checked)
+            
             if checked:
                 msg = self.searchBar.text()
                 self.filter.searchMsg(msg)
@@ -65,8 +64,13 @@ class TasksPage:
                 try:self.filter.undo(self.filter.searchMsg)
                 except:pass
             self.refreshTasks()
+        def searchTaskByPressingEnter():
+            x = bool(searchBar.text())
+            searchbttn.setChecked(x)
+            searchTask(x)
+
         searchbttn.toggled.connect(searchTask)
-        searchBar.returnPressed.connect(lambda:searchTask(True))
+        searchBar.returnPressed.connect(searchTaskByPressingEnter)
 
         def today(checked:bool):
             if checked:self.filter.dateBefore(datetime.now()+timedelta(days=1))
