@@ -282,7 +282,10 @@ class TasksWindow(QtWidgets.QWidget):
             self.Revtype=self.Revtype
 
             if not self.customBttn.isChecked():
-                self.RevIntrvl=int(self.RevIntrvl)
+                try:
+                    self.RevIntrvl=int(self.RevIntrvl)
+                except TypeError:
+                    pass
             elif self.customBttn.isChecked():
                 if self.revCombo.currentText().lower()=='months':
                     self.RevIntrvl=int(datetime.timedelta(days=int(self.no.text())*30).total_seconds())
