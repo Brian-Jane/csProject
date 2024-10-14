@@ -79,8 +79,17 @@ class TasksWindow(QtWidgets.QWidget):
         self.mainLayout.addItem(vertical_spacer_3, 6, 0)
 
         #Row-7
-        W4=G.genLabel("Priority",self.mainLayout,7,0)
+        W4=QtWidgets.QPushButton('Priority')
+        W4.setStyleSheet("text-align: left;")
+        W4.setFlat(True)
+        W4.setCheckable(True)
+        #G.genLabel("Priority",self.mainLayout,7,0)
         W4.setFont(G.HEADINGFONT)
+        self.mainLayout.addWidget(W4,7,0)
+        W4.clicked.connect(self.priority_checked)
+
+        
+            
 
         #Row-8
         self.layout2=QtWidgets.QHBoxLayout()
@@ -165,6 +174,17 @@ class TasksWindow(QtWidgets.QWidget):
 
 #Buttons Functions --->
 
+
+    def priority_checked(self):
+        checked_button = self.button_group1.checkedButton()
+    
+        if checked_button:
+            print(checked_button.text())
+            self.button_group1.setExclusive(False)
+            # Uncheck the button explicitly
+            checked_button.setChecked(False)
+            self.button_group1.setExclusive(True)
+
     def Repeat_clicked(self):
         if self.Repeat.isChecked():
             self.mainLayout.addLayout(self.layoutForIntrvl,11,0,1,2)
@@ -177,7 +197,9 @@ class TasksWindow(QtWidgets.QWidget):
         self.checked_bttn=self.groupForStdIntrvl.checkedButton()
         if self.checked_bttn:
             print(self.checked_bttn.text())
-            self.checked_bttn.setCheckable(False)
+            self.groupForStdIntrvl.setExclusive(False)
+            self.checked_bttn.setChecked(False)
+            self.groupForStdIntrvl.setExclusive(True)
         self.layoutForIntrvl.addLayout(self.layoutForCustom,1,2,2,1)
 
 
@@ -213,6 +235,7 @@ class TasksWindow(QtWidgets.QWidget):
         
         year=int(self.year.currentText())
         month=self.month.currentText().lower()
+        print(f"Month: {month}, Type: {type(month)}")
         day=self.day.currentText().lower()      #If Day or month is not provided, day=month=''
 
         hr=self.timeEdit.time().hour()
@@ -241,11 +264,13 @@ class TasksWindow(QtWidgets.QWidget):
         if self.priority is None:self.priority=5
 
 
-        c=1
+        c=0
+    
         if not self.task.text():
             G.produceError("Please enter the task")
             c=0
         else:
+            print(f"Month: {month}, Type: {type(month)}")
             if self.is_valid_date(day,month):
                 c=1
             else:
@@ -259,9 +284,14 @@ class TasksWindow(QtWidgets.QWidget):
                 day=int(self.day.currentText().lower())
                 month=month_map[self.month.currentText().lower()]
                 date=datetime.datetime(year,month,day,hr,min,sec)
+                c=1
+                if date <= datetime.datetime.now():
+                    c=0
+                    G.produceError("Date has already passed")
+                    
             except:
                 pass
-    
+
 
         if c==1:
             d={
@@ -284,12 +314,14 @@ class TasksWindow(QtWidgets.QWidget):
             if not self.T.searchTask(d['task']):
                 self.T.addTask(d['task'], d['priority'], date, d['folder'],
                             ReviveInterval=d['RevivalInterval'],RevivalType=d['RevivalType'])
-            if self.T.searchTask(d['task']):
+            elif self.T.searchTask(d['task']):
                 G.produceError('Task already present')
                   
 
     def is_valid_date(self, day: int, month: str):
         run = True
+        if not isinstance(month, str):
+            raise ValueError("Month should be passed as a string, not an integer or other type.")
 
         # Check if the month is empty or None
         if not month:
