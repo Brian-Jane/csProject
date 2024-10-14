@@ -19,7 +19,87 @@ print(config)
 mycon = connector.connect(user='root',host='localhost',
                           password=config['password'],
                           database=config['database'])
+class TasksPage:
+    def __init__(self,tasksLayout,foldersLayout,filterLayout,folderbttn,filterbttn,taskbttns):
+        self.tasksLayout = tasksLayout
+        self.foldersLayout = foldersLayout
+        self.filterLayout = filterLayout
+        self.folderbttn = folderbttn
+        self.filterbttn = filterbttn
+        self.taskbttns = taskbttns
 
+        self.tasks = Tasks.Tasks(mycon)
+
+        self.filter = Tasks.Filter()
+        self.filter.completedTask(False)
+
+        self.folderButtonGroup = QtWidgets.QButtonGroup()
+        self.folderButtonGroup.setExclusive(True)
+        Nonebttn = QtWidgets.QPushButton("None")
+        Nonebttn.setCheckable(True)
+        Nonebttn.setChecked(True)
+        Nonebttn.clicked.connect(self.on_Nonebttn_clicked)
+        foldersLayout.addWidget(Nonebttn)
+        self.folderButtonGroup.addButton(Nonebttn)
+
+        self.renderFolders()
+        self.renderTasks()
+    
+    def on_Nonebttn_clicked(self):
+        try:
+            self.filter.undo(self.filter.folder)
+        except:pass
+        self.refreshTasks()
+
+    def renderTasks(self):
+        """displays all tasks in the given input layout"""
+        layout = self.tasksLayout
+        def taskCheckboxCallback(ID):
+            self.tasks.completeTask(ID)
+            self.refreshTasks()
+
+        L = self.tasks.fetchall(filter=self.filter)
+        for task in L:
+            ID = task.ID
+            Gui.enterRow(layout,task,
+                         lambda clicked,ID=ID :taskCheckboxCallback(ID),
+                         color=task.color)
+    def refreshTasks(self):
+        layout = self.tasksLayout
+        self.tasks.refresh()
+        for i in range(1,layout.rowCount()-1):
+            Gui.deleteRow(layout,i)
+        self.renderTasks()
+
+    def renderFolders(self):
+        L = self.tasks.fetchFolders()
+        layout = self.foldersLayout
+        buttonGroup = self.folderButtonGroup
+        def editCallback(old_name,text,color):
+            self.tasks.updateFolder(old_name,text,color)
+            self.refreshFolders()
+            self.refreshTasks()
+        def selectCallback(name):
+            self.filter.folder(name)
+            self.refreshTasks()
+        for i in L:
+            x = Gui.Folder(i[0],i[1],lambda text,color,n=i[0]:editCallback(n,text,color),
+                       lambda a,n=i[0]:selectCallback(n),buttonGroup)
+            layout.addWidget(x)
+
+    def refreshFolders(self):
+        layout = self.foldersLayout
+        for i in range(layout.count()-1,0,-1):
+            item = layout.takeAt(i)
+            widget = item.widget()
+            if widget: 
+                widget.deleteLater()
+        self.renderFolders()
+    
+    def refreshAll(self):
+        self.refreshFolders()
+        self.refreshTasks()
+    
 class MyyMainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
@@ -28,10 +108,10 @@ class MyyMainWindow(QtWidgets.QMainWindow):
         self.tasks = Tasks.Tasks(mycon)
         self.stackedWidgetIndex = 0
         self.stackedWidgetPages = {"Folders":0,"AllTasks":1}
-        self.filter = Tasks.Filter()
-        self.filter.completedTask(False)
-        
-        self.renderTasks(self.ui.AllTasks_GridLayout)
+        self.tasksPage = TasksPage(self.ui.AllTasks_GridLayout,
+                              self.ui.scrollAreaWidgetContents.layout(),
+                              self.ui.scrollAreaWidgetContents_2.layout(),
+                              self.ui.addFolderbttn,None,None)
 
     def on_AllTasksButton_released(self):
         allTasksIndex = self.stackedWidgetPages["AllTasks"]
@@ -40,32 +120,8 @@ class MyyMainWindow(QtWidgets.QMainWindow):
 
     def on_FoldersButton_released(self):
         foldersIndex = self.stackedWidgetPages["Folders"]
-        self.ui.stackedWidget.setCurrentIndex(foldersIndex)
-        
-    def renderTasks(self,layout):
-        """displays all tasks in the given input layout"""
-        L = self.tasks.fetchall(filter=self.filter)
-        for task in L:
-            ID = task.ID
-            Gui.enterRow(layout,task,
-                         lambda clicked,ID=ID :self.taskCheckboxCallback(layout,ID),
-                         spacer=True)
-            #spent like... 30 mins trying to figure why this ID argument was
-            #"true" every time instead of ID, turns out the signal of a checkbox
-            #includes a "clicked" argument which overwrote the ID default arguemnt....so
-            #time well spent ig.... 
+        self.ui.stackedWidget.setCurrentIndex(foldersIndex)    
 
-    def taskCheckboxCallback(self,layout:QtWidgets.QGridLayout,
-                            ID):
-        self.tasks.completeTask(ID)
-        self.refreshTasks(layout)
-
-    def refreshTasks(self,layout):
-        self.tasks.refresh()
-        for i in range(1,layout.rowCount()-1):
-            Gui.deleteRow(layout,i)
-        self.renderTasks(layout)
-            
 MainWindow = MyyMainWindow()
 
 

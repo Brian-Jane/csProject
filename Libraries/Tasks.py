@@ -53,9 +53,8 @@ class Filter:
         self.conditions = {self.priorityHigherThan:"Tasks.Priority>",
                            self.priorityLowerThan:"Tasks.Priority<",
                            self.dateBefore:"Tasks.DueDate<",
-                           self.folder:"Tasks.Folder in ",
+                           self.folder:"Tasks.Folder = ",
                            self.completedTask:"Tasks.isCompleted="}
-        self.folders = set()
         self.param = {}
     def priorityLowerThan(self,num:int):
         """ the priority is lower than num"""
@@ -67,8 +66,7 @@ class Filter:
         """the due date is before given date"""
         self.param[self.dateBefore] = date
     def folder(self,folder:str):
-        self.folders.add(folder)
-        self.param[self.folder] = self.folders
+        self.param[self.folder] = folder
     def completedTask(self,status:bool):
         """task must be completed (true) or not completed(false)"""
         self.param[self.completedTask] = status
@@ -83,12 +81,11 @@ class Filter:
         values = ()
         for i in self.param:
             val = self.param[i]
-            if i==self.folder:
-                conditions.append(self.conditions[i]+"(%s)")
-            else:
-                conditions.append(self.conditions[i]+"%s")
+            
+            conditions.append(self.conditions[i]+"%s")
             values+=(val,)
         query = ' AND '.join(conditions)
+        print(query,values)
         return query,values
     
 class Tasks:   
@@ -345,6 +342,7 @@ class Tasks:
         self.conn.commit()
     
     def updateFolder(self,old_folder_name:str, new_folder_name:str, colorhex:str=''):
+        print(colorhex)
         if colorhex:
             self.execute(f"UPDATE Folders SET folder_name='{new_folder_name}',color='{colorhex}'\
                         WHERE folder_name='{old_folder_name}'")
@@ -419,7 +417,7 @@ class taskobject:
     revAttributes = ['RevivalType','RevivalInterval','DOC','Revivaldt']
     taskAttributes = ['ID','slno','msg','priority','dt','folder']
     folderAttributes  = ['color']
-    def __init__(self,ID,slno,msg,priority,dt,folder,DOC,color,RevivalType=None,RevivalInterval=None,Revivaldt=None):
+    def __init__(self,ID,slno,msg,priority,dt,folder,color,RevivalType=None,RevivalInterval=None,DOC=None,Revivaldt=None):
         self.ID = ID
         self.slno = slno
         self.msg = msg
