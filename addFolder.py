@@ -30,6 +30,7 @@ class addFolderWindow(QtWidgets.QWidget):
         
 
         self.submitbttn=QtWidgets.QPushButton('Submit')
+        self.submitbttn.setFont(G.FONT)
         self.submitbttn.clicked.connect(self.submitbttn_clicked)
 
         self.mainLayout.addWidget(self.submitbttn)
@@ -49,13 +50,14 @@ class addFolderWindow(QtWidgets.QWidget):
         print(self.folder.text(),self.color)
         if not self.T.addFolder(self.folder.text(),self.color):
             G.produceError("Folder already there")
+        else:
+            self.close()
 
 
     
 
 with open('config.json','r') as file:
     config = json.loads(file.read())
-print(config)
 mycon = m.connect(user='root',host='localhost',
                           password=config['password'],
                           database=config['database'])
