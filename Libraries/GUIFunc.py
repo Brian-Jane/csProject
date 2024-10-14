@@ -49,15 +49,16 @@ def genLineEdit(layout:QtWidgets.QBoxLayout, row:int=None, column:int=None) ->Qt
     LineEdit.setFont(FONT)
     return LineEdit
 
-def genRadioBttn(data,layout:QtWidgets.QBoxLayout,row:int=None,column:int=None, bttngrp:QtWidgets.QButtonGroup=None,
+def genRadioBttn(data,layout:QtWidgets.QBoxLayout,row:int=None,column:int=None, bttngrp:QtWidgets.QButtonGroup=None, id:int=None,
                  l:list=None) ->QtWidgets.QRadioButton:
     """Generates a RadioBttn"""
     Radiobttn=QtWidgets.QRadioButton(str(data))
     Radiobttn.setFont(FONT)
     if row is None: layout.addWidget(Radiobttn)
     else: layout.addWidget(Radiobttn,row,column)
-    bttngrp.addButton(Radiobttn)
 
+    if not id: bttngrp.addButton(Radiobttn)
+    if id: bttngrp.addButton(Radiobttn,id=id)
     if l: l.append(Radiobttn)
     return Radiobttn
 
@@ -124,6 +125,10 @@ def genSpacer(layout:QtWidgets.QBoxLayout,row:int=None,column:int=None,Orientati
 def invisible(L:list):
     for widget in L:
         widget.hide()
+
+def visible(L:list):
+    for widget in L:
+        widget.show()
 
 
 def widgets_in_layout(Layout:QtWidgets.QBoxLayout,widget_type):
@@ -332,7 +337,7 @@ class ErrorWindow(QtWidgets.QWidget):
     
     def __init__(self, error:str):
         super().__init__()
-        self.setWindowTitle("Error")
+        self.setWindowTitle("⚠️ Error")
         self.setGeometry(700, 200, 500,200)
         l=QtWidgets.QGridLayout()
         genLabel(error,l,0,0)
