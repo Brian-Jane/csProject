@@ -3,6 +3,7 @@ import GUI.Mainwindow as mw
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import mysql.connector as connector
+from datetime import datetime,timedelta
 
 from Libraries import Tasks
 from Libraries import Gui
@@ -20,18 +21,25 @@ mycon = connector.connect(user='root',host='localhost',
                           password=config['password'],
                           database=config['database'])
 class TasksPage:
-    def __init__(self,tasksLayout,foldersLayout,filterLayout,folderbttn,filterbttn,taskbttns):
+    def __init__(self,tasksLayout,foldersLayout,filterLayout,folderbttn,filterbttn,taskbttns,
+                 searchBar,searchbttn,todaybttn):
         self.tasksLayout = tasksLayout
         self.foldersLayout = foldersLayout
         self.filterLayout = filterLayout
         self.folderbttn = folderbttn
         self.filterbttn = filterbttn
         self.taskbttns = taskbttns
+        self.searchBar = searchBar
 
         self.tasks = Tasks.Tasks(mycon)
 
         self.filter = Tasks.Filter()
         self.filter.completedTask(False)
+        self.order_by = "Tasks.slno"
+        def taskButtonClicked(order_by):
+            self.order_by=order_by
+            self.refreshTasks()
+        Gui.genTasksLayout(tasksLayout,taskButtonClicked)
 
         self.folderButtonGroup = QtWidgets.QButtonGroup()
         self.folderButtonGroup.setExclusive(True)
@@ -41,7 +49,31 @@ class TasksPage:
         Nonebttn.clicked.connect(self.on_Nonebttn_clicked)
         foldersLayout.addWidget(Nonebttn)
         self.folderButtonGroup.addButton(Nonebttn)
+        
+        taskButtonGroup = QtWidgets.QButtonGroup()
+        taskButtonGroup.setExclusive(True)
+        
+        def searchTask(checked:bool):
+            if searchbttn.isChecked() ^ checked:
+                searchbttn.setChecked(checked)
+            if checked:
+                msg = self.searchBar.text()
+                self.filter.searchMsg(msg)
+            else:
+                try:self.filter.undo(self.filter.searchMsg)
+                except:pass
+            self.refreshTasks()
+        searchbttn.toggled.connect(searchTask)
+        searchBar.returnPressed.connect(lambda:searchTask(True))
 
+        def today(checked:bool):
+            if checked:self.filter.dateBefore(datetime.now()+timedelta(days=1))
+            else:
+                try:self.filter.undo(self.filter.dateBefore)
+                except:pass
+            self.refreshTasks()
+
+        todaybttn.toggled.connect(today)
         self.renderFolders()
         self.renderTasks()
     
@@ -58,7 +90,7 @@ class TasksPage:
             self.tasks.completeTask(ID)
             self.refreshTasks()
 
-        L = self.tasks.fetchall(filter=self.filter)
+        L = self.tasks.fetchall(order_by=self.order_by,filter=self.filter)
         for task in L:
             ID = task.ID
             Gui.enterRow(layout,task,
@@ -82,9 +114,14 @@ class TasksPage:
         def selectCallback(name):
             self.filter.folder(name)
             self.refreshTasks()
+        def deleteCallback(name):
+            self.on_Nonebttn_clicked()
+            self.tasks.delFolder(name)
+            self.refreshFolders()
+            self.refreshTasks()
         for i in L:
             x = Gui.Folder(i[0],i[1],lambda text,color,n=i[0]:editCallback(n,text,color),
-                       lambda a,n=i[0]:selectCallback(n),buttonGroup)
+                       lambda a,n=i[0]:selectCallback(n),lambda a,n=i[0]:deleteCallback(n),buttonGroup)
             layout.addWidget(x)
 
     def refreshFolders(self):
@@ -108,10 +145,14 @@ class MyyMainWindow(QtWidgets.QMainWindow):
         self.tasks = Tasks.Tasks(mycon)
         self.stackedWidgetIndex = 0
         self.stackedWidgetPages = {"Folders":0,"AllTasks":1}
+        """taskButtonDict = {self.ui.Slno:"Tasks.slno",
+                          self.ui.Priority:"Tasks.priority",self.ui.DueDate:"Tasks.dt",
+                          self.ui.Folder:"Tasks.folder"}"""
         self.tasksPage = TasksPage(self.ui.AllTasks_GridLayout,
                               self.ui.scrollAreaWidgetContents.layout(),
                               self.ui.scrollAreaWidgetContents_2.layout(),
-                              self.ui.addFolderbttn,None,None)
+                              self.ui.addFolderbttn,None,None,
+                              self.ui.SearchBar,self.ui.searchBttn,self.ui.Today)
 
     def on_AllTasksButton_released(self):
         allTasksIndex = self.stackedWidgetPages["AllTasks"]

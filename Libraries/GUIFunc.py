@@ -92,23 +92,12 @@ def genComboBox(Items:list,layout:QtWidgets.QBoxLayout, row:int=None, column:int
     return combo
 
 def genLine(Layout:QtWidgets.QBoxLayout, orientation:str='v', row:int=None, column:int=None, rspan:int=None, cspan:int=None):
-    if orientation=='v':    #Vertical Line
-        vertical_line = QtWidgets.QFrame()
-        vertical_line.setFrameShape(QtWidgets.QFrame.VLine)
-        if row!=None:
-            Layout.addWidget(vertical_line, row, column) 
-
-        return vertical_line
-
-    elif orientation=='h':   #Horizontal Line
-        horizontal_line = QtWidgets.QFrame()
-        horizontal_line.setFrameShape(QtWidgets.QFrame.HLine)
-        if row!=None:
-            Layout.addWidget(horizontal_line, row, column) 
-    
-        return horizontal_line
-
-
+    frameShape = QtWidgets.QFrame.VLine if orientation=='v' else QtWidgets.QFrame.HLine
+    vertical_line = QtWidgets.QFrame()
+    vertical_line.setFrameShape(QtWidgets.QFrame.VLine)
+    if row!=None:
+        Layout.addWidget(vertical_line, row, column) 
+    return vertical_line
 
 def genSpacer(layout:QtWidgets.QBoxLayout,row:int=None,column:int=None,Orientation='v'):
     if Orientation=='v':

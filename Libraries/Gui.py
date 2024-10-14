@@ -5,14 +5,22 @@ import datetime
 import mysql.connector as m
 
 from Libraries.Tasks import *
+from typing import Union
 
 FONT= QtGui.QFont()
 FONT.setPointSize(10)
 
+def generateLighterColor(color):
+    Qcolor = QtGui.QColor(color)
+    return Qcolor.lighter(170).name()
+     
+
 def genCheckbox(task:taskobject,callback,layout:QtWidgets.QBoxLayout,
                 row:int,column:int,color=None):
     checkbox=QtWidgets.QCheckBox(task.msg)
-    if color:checkbox.setStyleSheet(f"border:5px solid;border-radius:10px;border-color:{color};")
+    if color:
+        background = generateLighterColor(color)
+        checkbox.setStyleSheet(f"background-color:{background};border:5px solid;border-radius:10px;border-color:{color};")
     checkbox.clicked.connect(callback)
     checkbox.setFont(FONT)
 
@@ -24,7 +32,11 @@ def checkbox_clicked(checkbox:QtWidgets.QCheckBox,task:taskobject):
 
 def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,color=None):
     Label=QtWidgets.QLabel(data)
-    if color:Label.setStyleSheet(f"border:5px solid;border-radius:10px;border-color:{color};")
+    Label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+    
+    if color:
+        background = generateLighterColor(color)
+        Label.setStyleSheet(f"background-color:{background};border:5px solid;border-radius:10px;border-color:{color};")
     if row is None: layout.addWidget(Label)
     else: layout.addWidget(Label,row,column,1,1)
     Label.setFont(FONT)
@@ -52,6 +64,31 @@ def genLine(layout:QtWidgets.QBoxLayout,row,column):
         
         # Add the lines to the layout
     layout.addWidget(v_line,row,column,1,1)
+def genTasksLayout(tasksLayout,callback):
+    HEADINGFONT= QtGui.QFont()
+    HEADINGFONT.setPointSize(10)
+    HEADINGFONT.setBold(True)
+    for i in range(1,8,2):genLine(tasksLayout,row=0,column=i)
+    
+    bttn_group = QtWidgets.QButtonGroup()
+    bttn_group.setExclusive(True)
+    column_names = {'Slno':"Tasks.slno",'Task':"Tasks.msg",'Priority':"Tasks.priority",'Due Date':"Tasks.dt",
+                    "Folder":"Tasks.folder"}
+    def checkableBttn(text:str, column):
+        bttn=QtWidgets.QRadioButton(text)
+        bttn.setCheckable(True)
+        #etFlat(True)
+        bttn.setFont(HEADINGFONT)
+        
+        bttn_group.addButton(bttn)
+        bttn.clicked.connect(lambda:callback(column_names[text]))
+        tasksLayout.addWidget(bttn,0,column)
+
+    for i,text in enumerate(column_names):
+        checkableBttn(text,i*2)
+    
+    spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+    tasksLayout.addItem(spacer,1,0)
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
              checkBoxCallback,color):
@@ -103,7 +140,7 @@ def loadUI(main_layout:QtWidgets.QLayout, Tlayout:QtWidgets.QLayout, Flayout:QtW
 """Have to do the same for folders too"""
 
 class Folder(QtWidgets.QWidget):
-    def __init__(self,text,color,editCallback,selectCallback,buttonGroup):
+    def __init__(self,text,color,editCallback,selectCallback,deleteCallback,buttonGroup):
         super().__init__()
         self.color = color
         self.text = text
@@ -121,12 +158,13 @@ class Folder(QtWidgets.QWidget):
         buttonGroup.addButton(text)
         text.clicked.connect(selectCallback)
         text.doubleClicked.connect(self.textEdit)
+        text.setDeleteCallback(deleteCallback)
         ##buttonGroup.addButton(text)
         layout.addWidget(text)
         layout.setContentsMargins(0,0,0,0)
         self.setLayout(layout)
     def circleEdit(self):
-        new_color = QtWidgets.QColorDialog().getColor(QtGui.QColor(f"#{self.color}"))
+        new_color = QtWidgets.QColorDialog().getColor(QtGui.QColor(self.color))
         self.editCallback(self.text,new_color.name())
 
     def textEdit(self):
@@ -139,6 +177,21 @@ class editableButton(QtWidgets.QPushButton):
     doubleClicked = QtCore.pyqtSignal()
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
+        self.deleteCallback = 0
+    def setDeleteCallback(self,func):
+        self.deleteCallback = func
     def mouseDoubleClickEvent(self,event):
         self.doubleClicked.emit()
         super().mouseDoubleClickEvent(event)
+    def contextMenuEvent(self, event):
+        if self.deleteCallback:
+            context_menu = QtWidgets.QMenu(self)
+
+            info_action = QtWidgets.QAction("delete", self)
+            info_action.triggered.connect(self.deleteCallback)
+
+            context_menu.addAction(info_action)
+            context_menu.exec_(event.globalPos())
+        else:
+            super().contextMenuEvent(event)
+    

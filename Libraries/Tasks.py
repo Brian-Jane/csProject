@@ -50,12 +50,15 @@ CREATE_COMMAND_EVENTS= f"CREATE TABLE Events(slno int AUTO_INCREMENT primary key
 default_value = object()
 class Filter:
     def __init__(self):
-        self.conditions = {self.priorityHigherThan:"Tasks.Priority>",
-                           self.priorityLowerThan:"Tasks.Priority<",
-                           self.dateBefore:"Tasks.DueDate<",
-                           self.folder:"Tasks.Folder = ",
-                           self.completedTask:"Tasks.isCompleted="}
+        self.conditions = {self.priorityHigherThan:"Tasks.Priority>%s",
+                           self.priorityLowerThan:"Tasks.Priority<%s",
+                           self.dateBefore:"Tasks.dt<%s",
+                           self.folder:"Tasks.Folder = %s",
+                           self.completedTask:"Tasks.isCompleted=%s",
+                           self.searchMsg:"Tasks.msg like %s"}
         self.param = {}
+    def searchMsg(self,msg:str):
+        self.param[self.searchMsg] = "%"+msg+"%"
     def priorityLowerThan(self,num:int):
         """ the priority is lower than num"""
         self.param[self.priorityLowerThan] = num
@@ -82,7 +85,7 @@ class Filter:
         for i in self.param:
             val = self.param[i]
             
-            conditions.append(self.conditions[i]+"%s")
+            conditions.append(self.conditions[i])
             values+=(val,)
         query = ' AND '.join(conditions)
         print(query,values)
@@ -363,6 +366,7 @@ class Tasks:
     
     def fetchall(self,order_by:str='Tasks.slno',folder:str='',filter:Filter=Filter()):
         if order_by not in taskobject.attributes:
+            print(order_by)
             raise ValueError("The order by argument must be a valid attribute")
         whereClause,whereParam = filter.generateWhereClause()
         if whereClause:
