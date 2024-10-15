@@ -2,6 +2,9 @@
 import GUI.Mainwindow as mw
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QPalette,QColor
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QStyleFactory
 import mysql.connector as connector
 from datetime import datetime,timedelta
 
@@ -11,7 +14,30 @@ from Libraries import Gui
 import sys
 import json
 
-app = QtWidgets.QApplication(sys.argv)
+qApp = QtWidgets.QApplication(sys.argv)
+qApp.setStyle("Fusion")
+
+dark_palette = QPalette()
+WHITE = QColor(255,255,255)
+RED = QColor(255,0,0)
+BLACK = QColor(0,0,0)
+dark_palette.setColor(QPalette.Window, QColor(53, 53, 53))
+dark_palette.setColor(QPalette.WindowText, WHITE)
+dark_palette.setColor(QPalette.Base, QColor(25, 25, 25))
+dark_palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+dark_palette.setColor(QPalette.ToolTipBase, WHITE)
+dark_palette.setColor(QPalette.ToolTipText, WHITE)
+dark_palette.setColor(QPalette.Text, WHITE)
+dark_palette.setColor(QPalette.Button, QColor(53, 53, 53))
+dark_palette.setColor(QPalette.ButtonText, WHITE)
+dark_palette.setColor(QPalette.BrightText, RED)
+dark_palette.setColor(QPalette.Link, QColor(42, 130, 218))
+dark_palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+dark_palette.setColor(QPalette.HighlightedText, BLACK)
+
+qApp.setPalette(dark_palette)
+
+qApp.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
 config = {}
 with open('config.json','r') as file:
     config = json.loads(file.read())
@@ -171,4 +197,4 @@ MainWindow = MyyMainWindow()
 
 
 MainWindow.show()
-sys.exit(app.exec_())
+sys.exit(qApp.exec_())

@@ -12,7 +12,7 @@ FONT.setPointSize(10)
 
 def generateLighterColor(color):
     Qcolor = QtGui.QColor(color)
-    return Qcolor.lighter(170).name()
+    return Qcolor.lighter(30).name()
      
 
 def genCheckbox(task:taskobject,callback,layout:QtWidgets.QBoxLayout,
