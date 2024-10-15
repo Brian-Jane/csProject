@@ -1,7 +1,7 @@
 import sys
 from PyQt5 import QtWidgets,QtGui
 from Libraries.Tasks import Tasks,taskobject
-import time
+from PyQt5.QtCore import QTime
 import Libraries.GUIFunc as G
 import mysql.connector as m
 import datetime
@@ -10,8 +10,9 @@ import json
 ##MAKE SURE THAT SUBMIT BUTTON CLOSES THE WINDOW OK?
 
 class TasksWindow(QtWidgets.QWidget):
-    def __init__(self, T:Tasks):
+    def __init__(self, T:Tasks, taskobject:taskobject=None):
         self.T=T
+        self.taskobject=taskobject
         super().__init__()
         self.setWindowTitle("Taskswindow")
         self.setGeometry(500, 100, 1000,900)
@@ -24,6 +25,8 @@ class TasksWindow(QtWidgets.QWidget):
         W1.setFont(G.HEADINGFONT)
         self.task=G.genLineEdit(self.mainLayout,0,1)
         self.task.setPlaceholderText('Enter Task')
+        if self.taskobject:
+            self.task.setText(self.taskobject.msg)
 
         #Row-1
         vertical_spacer_1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
@@ -39,6 +42,8 @@ class TasksWindow(QtWidgets.QWidget):
             folders.append(i[0])
 
         self.folder=G.genComboBox(folders,self.mainLayout,2,1)
+        if self.taskobject and self.taskobject.folder:
+            self.folder.setCurrentText(self.taskobject.folder)
 
 
         #Row-3
@@ -71,8 +76,14 @@ class TasksWindow(QtWidgets.QWidget):
         self.timeEdit.setFont(G.FONT)
         self.layout1.addWidget(self.timeEdit,1,3)
 
-        self.mainLayout.addLayout(self.layout1,5,0,1,2)
+        if self.taskobject and self.taskobject.dueDate:
+            dueDate=self.taskobject.dueDate
+            self.year.setCurrentText(str(dueDate.year))
+            self.month.setCurrentText(str(dueDate.strftime("%B")))
+            self.day.setCurrentText(str(dueDate.day))
+            self.timeEdit.setTime(QTime(dueDate.hour,dueDate.minute))
 
+        self.mainLayout.addLayout(self.layout1,5,0,1,2)
 
         #Row-6
         vertical_spacer_3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
@@ -95,9 +106,12 @@ class TasksWindow(QtWidgets.QWidget):
         self.layout2=QtWidgets.QHBoxLayout()
         self.button_group1=QtWidgets.QButtonGroup()
         for i in range(1,11):
-            self.rBttn=G.genRadioBttn(i,self.layout2,bttngrp=self.button_group1)
+            self.rBttn=G.genRadioBttn(i,self.layout2,bttngrp=self.button_group1,id=i)
         
         self.button_group1.buttonClicked.connect(self.button_group1_clicked)
+
+        if self.taskobject:
+            self.button_group1.button(int(self.taskobject.priority)).setChecked(True)
 
     
         self.mainLayout.addItem(self.layout2,8,0,1,2)
@@ -120,22 +134,29 @@ class TasksWindow(QtWidgets.QWidget):
         self.RevIntrvl=None
         self.layoutFor_E_A=QtWidgets.QGridLayout()
         self.groupFor_E_A=QtWidgets.QButtonGroup()
-        self.ET=G.genRadioBttn('Every Task',self.layoutFor_E_A,bttngrp=self.groupFor_E_A,row=0,column=0)
+        self.ET=G.genRadioBttn('Every Task',self.layoutFor_E_A,bttngrp=self.groupFor_E_A,row=0,column=0,  id=1)
         self.ET.hide()
-        self.AT=G.genRadioBttn('After Task',self.layoutFor_E_A,bttngrp=self.groupFor_E_A,row=0,column=1)
+        self.AT=G.genRadioBttn('After Task',self.layoutFor_E_A,bttngrp=self.groupFor_E_A,row=0,column=1,  id=2)
         self.AT.hide()
 
         self.groupFor_E_A.buttonClicked.connect(self.groupFor_E_A_clicked)
         self.mainLayout.addItem(self.layoutFor_E_A,10,1)
+
+        if self.taskobject and self.taskobject.RevType:
+            RevType=self.taskobject.RevType.lower()
+            if RevType=='e':
+                self.groupFor_E_A.button(1).setChecked(True)
+            elif RevType== 'a':
+                self.groupFor_E_A.button(2).setChecked(True)
 
 
         #Row-11
         self.layoutForIntrvl=QtWidgets.QGridLayout()
 
         self.groupForStdIntrvl=QtWidgets.QButtonGroup()
-        self.Daily=G.genRadioBttn('Daily',self.layoutForIntrvl,0,0,self.groupForStdIntrvl)
-        self.Weekly=G.genRadioBttn('Weekly',self.layoutForIntrvl,1,0,self.groupForStdIntrvl)
-        self.Monthly=G.genRadioBttn('Monthly',self.layoutForIntrvl,2,0,self.groupForStdIntrvl)
+        self.Daily=G.genRadioBttn('Daily',self.layoutForIntrvl,0,0,self.groupForStdIntrvl,  id=1)
+        self.Weekly=G.genRadioBttn('Weekly',self.layoutForIntrvl,1,0,self.groupForStdIntrvl,   id=2)
+        self.Monthly=G.genRadioBttn('Monthly',self.layoutForIntrvl,2,0,self.groupForStdIntrvl,  id=3)
         self.groupForStdIntrvl.buttonClicked.connect(self.grpForSTdIntrvl_clicked)
         
         h_spacer = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -152,6 +173,18 @@ class TasksWindow(QtWidgets.QWidget):
         self.no=G.genLineEdit(self.layoutForCustom,1,0)
         self.no.setText('1')
         self.revCombo=G.genComboBox(['hours','days','weeks','months'],self.layoutForCustom,1,2)
+
+        if self.taskobject and self.taskobject.RevInterval:
+            RevInterval_hours= int(self.taskobject.RevInterval/60)
+
+            if RevInterval_hours==24:
+                self.groupForStdIntrvl.button(1).setChecked(True)
+            if RevInterval_hours==(24*7):
+                self.groupForStdIntrvl.button(2).setChecked(True)
+            
+            else:
+                self.no.setText(str(RevInterval_hours))
+                self.revCombo.setCurrentText('hours')
 
         
 
@@ -201,6 +234,7 @@ class TasksWindow(QtWidgets.QWidget):
             self.groupForStdIntrvl.setExclusive(False)
             self.checked_bttn.setChecked(False)
             self.groupForStdIntrvl.setExclusive(True)
+        
         self.layoutForIntrvl.addLayout(self.layoutForCustom,1,2,2,1)
 
 
@@ -248,7 +282,10 @@ class TasksWindow(QtWidgets.QWidget):
             self.Revtype=self.Revtype
 
             if not self.customBttn.isChecked():
-                self.RevIntrvl=int(self.RevIntrvl)
+                try:
+                    self.RevIntrvl=int(self.RevIntrvl)
+                except TypeError:
+                    pass
             elif self.customBttn.isChecked():
                 if self.revCombo.currentText().lower()=='months':
                     self.RevIntrvl=int(datetime.timedelta(days=int(self.no.text())*30).total_seconds())
@@ -263,6 +300,7 @@ class TasksWindow(QtWidgets.QWidget):
 
         
         if self.priority is None:self.priority=5
+        if self.RevIntrvl is not None and self.Revtype is None:self.Revtype='e'
 
 
         c=1     #'c' keeps track of any error in runtime. 
@@ -413,7 +451,7 @@ class TasksWindow(QtWidgets.QWidget):
 
 
 
-with open('config.json','r') as f:
+'''with open('config.json','r') as f:
     config=json.load(f)
     conn=m.connect(user='root',host='LocalHost',
                    database=config['database'],
@@ -421,14 +459,15 @@ with open('config.json','r') as f:
 
 
 T=Tasks(conn)
+b=T.fetchall()
 
 
 if __name__=='__main__':
     app = QtWidgets.QApplication(sys.argv)
 
-    window = TasksWindow(T)
+    window = TasksWindow(T,b[9])
 
     window.show()
 
     sys.exit(app.exec_())
-
+'''

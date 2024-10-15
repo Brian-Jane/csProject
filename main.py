@@ -11,6 +11,8 @@ from datetime import datetime,timedelta
 from Libraries import Tasks
 from Libraries import Gui
 
+from WindowForTasks import TasksWindow
+
 import sys
 import json
 
@@ -191,7 +193,19 @@ class MyyMainWindow(QtWidgets.QMainWindow):
 
     def on_FoldersButton_released(self):
         foldersIndex = self.stackedWidgetPages["Folders"]
-        self.ui.stackedWidget.setCurrentIndex(foldersIndex)    
+        self.ui.stackedWidget.setCurrentIndex(foldersIndex)   
+
+
+#ConnectSlotsByName -->
+
+    def connectSlotsByName(self):
+        # Automatically connect signals to slots based on naming convention
+        super().connectSlotsByName()
+
+    def on_addTasbkttn_clicked(self):
+        self.TaskWindow=TasksWindow(self.tasks)
+        self.TaskWindow.show()
+
 
 MainWindow = MyyMainWindow()
 
