@@ -168,7 +168,7 @@ class Folder(QtWidgets.QWidget):
         self.editCallback(self.text,new_color.name())
 
     def textEdit(self):
-        text,ok = QtWidgets.QInputDialog.getText(self,"Text Input","bruh")
+        text,ok = QtWidgets.QInputDialog.getText(self,"Text Input","Rename Folder")
         if text and ok:
             self.editCallback(text,self.color)
 

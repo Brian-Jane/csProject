@@ -10,9 +10,10 @@ import json
 ##MAKE SURE THAT SUBMIT BUTTON CLOSES THE WINDOW OK?
 
 class TasksWindow(QtWidgets.QWidget):
-    def __init__(self, T:Tasks, taskobject:taskobject=None):
+    def __init__(self, T:Tasks, taskobject:taskobject=None, refreshFunc=None):
         self.T=T
         self.taskobject=taskobject
+        self.refreshFunc=refreshFunc
         super().__init__()
         self.setWindowTitle("Taskswindow")
         self.setGeometry(500, 100, 1000,900)
@@ -353,6 +354,9 @@ class TasksWindow(QtWidgets.QWidget):
                             ReviveInterval=d['RevivalInterval'],RevivalType=d['RevivalType'])
                 
                 self.close()  #Close the window when submit is clicked
+
+                if self.refreshFunc: self.refreshFunc()
+
             elif self.T.searchTask(d['task']):
                 G.produceError('Task already present')
                   

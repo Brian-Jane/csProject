@@ -203,7 +203,7 @@ class MyyMainWindow(QtWidgets.QMainWindow):
         super().connectSlotsByName()
 
     def on_addTasbkttn_clicked(self):
-        self.TaskWindow=TasksWindow(self.tasks)
+        self.TaskWindow=TasksWindow(self.tasks,self.tasksPage.refreshAll())
         self.TaskWindow.show()
 
 
