@@ -94,7 +94,7 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
-           <widget class="QPushButton" name="pushButton_7">
+           <widget class="QPushButton" name="addFolderbttn">
             <property name="minimumSize">
              <size>
               <width>150</width>
@@ -103,6 +103,9 @@
             </property>
             <property name="text">
              <string>Folders</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -149,6 +152,9 @@
            <widget class="QPushButton" name="CompletedTasks">
             <property name="text">
              <string>Completed Tasks</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -237,56 +243,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QGridLayout" name="AllTasks_GridLayout">
-            <item row="0" column="3">
-             <widget class="Line" name="line_4">
-              <property name="font">
-               <font>
-                <pointsize>10</pointsize>
-               </font>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="Line" name="line">
-              <property name="font">
-               <font>
-                <pointsize>10</pointsize>
-               </font>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="Line" name="line_2">
-              <property name="font">
-               <font>
-                <pointsize>10</pointsize>
-               </font>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="2">
-             <widget class="Line" name="line_3">
-              <property name="font">
-               <font>
-                <pointsize>10</pointsize>
-               </font>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <layout class="QGridLayout" name="AllTasks_GridLayout"/>
           </item>
          </layout>
         </item>
@@ -895,19 +852,6 @@
           </layout>
          </widget>
         </widget>
-       </widget>
-       <widget class="QPushButton" name="addFolderbttn">
-        <property name="geometry">
-         <rect>
-          <x>40</x>
-          <y>520</y>
-          <width>101</width>
-          <height>23</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>+ Add Folder</string>
-        </property>
        </widget>
       </widget>
      </widget>

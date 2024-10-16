@@ -10,9 +10,9 @@ import json
 
 
 class addFolderWindow(QtWidgets.QWidget):
-    def __init__(self,T:Tasks):
+    def __init__(self,callback):
         super().__init__()
-        self.T=T
+        self.callback = callback
         self.setWindowTitle("Add Folder")
         self.setGeometry(500, 100, 500,500)
         self.mainLayout=QtWidgets.QGridLayout()
@@ -48,14 +48,14 @@ class addFolderWindow(QtWidgets.QWidget):
 
     def submitbttn_clicked(self):
         print(self.folder.text(),self.color)
-        if not self.T.addFolder(self.folder.text(),self.color):
+        if not self.callback(self.folder.text(),self.color):
             G.produceError("Folder already there")
         else:
             self.close()
 
 
     
-
+"""
 with open('config.json','r') as file:
     config = json.loads(file.read())
 mycon = m.connect(user='root',host='localhost',
@@ -69,4 +69,4 @@ window = addFolderWindow(t)
 window.show()
 
 sys.exit(app.exec_())
-
+"""

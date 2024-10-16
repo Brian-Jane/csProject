@@ -10,13 +10,13 @@ import json
 ##MAKE SURE THAT SUBMIT BUTTON CLOSES THE WINDOW OK?
 
 class TasksWindow(QtWidgets.QWidget):
-    def __init__(self, T:Tasks, taskobject:taskobject=None, refreshFunc=None):
+    def __init__(self, T:Tasks, taskobject:taskobject=None,folderList=[]):
         self.T=T
         self.taskobject=taskobject
         self.refreshFunc=refreshFunc
         super().__init__()
         self.setWindowTitle("Taskswindow")
-        self.setGeometry(500, 100, 1000,900)
+        self.setGeometry(500, 100, 500,500)
         self.mainLayout=QtWidgets.QGridLayout()
 
         self.priority=None
@@ -38,24 +38,17 @@ class TasksWindow(QtWidgets.QWidget):
         W2=G.genLabel("Folder",self.mainLayout,2,0)
         W2.setFont(G.HEADINGFONT)
 
-        folders=[None]
-        for i in self.T.fetchFolders():
-            folders.append(i[0])
-
-        self.folder=G.genComboBox(folders,self.mainLayout,2,1)
+        self.folder=G.genComboBox(folderList,self.mainLayout,2,1)
         if self.taskobject and self.taskobject.folder:
             self.folder.setCurrentText(self.taskobject.folder)
-
 
         #Row-3
         vertical_spacer_2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.mainLayout.addItem(vertical_spacer_2, 3, 0)
 
-
         #Row-4
         W3=G.genLabel('Due Date', self.mainLayout, 4,0)
         W3.setFont(G.HEADINGFONT)
-
 
         #Row-5
         self.layout1=QtWidgets.QGridLayout()   
@@ -99,9 +92,6 @@ class TasksWindow(QtWidgets.QWidget):
         W4.setFont(G.HEADINGFONT)
         self.mainLayout.addWidget(W4,7,0)
         W4.clicked.connect(self.priority_checked)
-
-        
-            
 
         #Row-8
         self.layout2=QtWidgets.QHBoxLayout()

@@ -223,7 +223,10 @@ class Tasks:
                 cur.execute("UPDATE RevT SET Revivaldt=%s WHERE ID = %s",(Revdt,ID))
             cur.execute(f"UPDATE Tasks SET isCompleted=TRUE WHERE ID={ID}")
         self.conn.commit()
-
+    def redoTask(self,ID:int):
+        with self.conn.cursor() as cur:
+            cur.execute("UPDATE Tasks SET isCompleted=FALSE WHERE Tasks.ID=%s",(ID,))
+        self.conn.commit()
     def getRevdt(self,ID:int):
         with self.conn.cursor() as cur:
             cur.execute(f"SELECT RevivalInterval, RevivalType, DOC FROM RevT WHERE ID={ID}")

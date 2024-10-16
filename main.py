@@ -10,9 +10,9 @@ from datetime import datetime,timedelta
 
 from Libraries import Tasks
 from Libraries import Gui
+from addFolder import addFolderWindow
 
 from WindowForTasks import TasksWindow
-
 import sys
 import json
 
@@ -49,12 +49,14 @@ mycon = connector.connect(user='root',host='localhost',
                           password=config['password'],
                           database=config['database'])
 class TasksPage:
-    def __init__(self,tasksLayout,foldersLayout,filterLayout,folderbttn,filterbttn,taskbttns,
+    def __init__(self,tasksLayout,foldersLayout,filterLayout,folderbttn,completedTasksbttn,
+                 filterbttn,taskbttns,
                  searchBar,searchbttn,todaybttn):
         self.tasksLayout = tasksLayout
         self.foldersLayout = foldersLayout
         self.filterLayout = filterLayout
         self.folderbttn = folderbttn
+        self.completedTasksbttn = completedTasksbttn
         self.filterbttn = filterbttn
         self.taskbttns = taskbttns
         self.searchBar = searchBar
@@ -68,7 +70,14 @@ class TasksPage:
             self.order_by=order_by
             self.refreshTasks()
         Gui.genTasksLayout(tasksLayout,taskButtonClicked)
-
+        def addButtonSlot():
+            def callback(text,color):
+                self.tasks.addFolder(text,color)
+                self.refreshFolders()
+                return True
+            self.x = addFolderWindow(callback)
+            self.x.show()
+        folderbttn.clicked.connect(addButtonSlot)
         self.folderButtonGroup = QtWidgets.QButtonGroup()
         self.folderButtonGroup.setExclusive(True)
         Nonebttn = QtWidgets.QPushButton("None")
@@ -77,12 +86,12 @@ class TasksPage:
         Nonebttn.clicked.connect(self.on_Nonebttn_clicked)
         foldersLayout.addWidget(Nonebttn)
         self.folderButtonGroup.addButton(Nonebttn)
-        
-        taskButtonGroup = QtWidgets.QButtonGroup()
-        taskButtonGroup.setExclusive(True)
-        
+
+        def completedTasksCallback(checked):
+            self.filter.completedTask(checked)
+            self.refreshTasks()
+        completedTasksbttn.toggled.connect(completedTasksCallback)
         def searchTask(checked:bool):
-            
             if checked:
                 msg = self.searchBar.text()
                 self.filter.searchMsg(msg)
@@ -119,7 +128,8 @@ class TasksPage:
         """displays all tasks in the given input layout"""
         layout = self.tasksLayout
         def taskCheckboxCallback(ID):
-            self.tasks.completeTask(ID)
+            if not self.filter.param[self.filter.completedTask]:self.tasks.completeTask(ID)
+            else:self.tasks.redoTask(ID)
             self.refreshTasks()
 
         L = self.tasks.fetchall(order_by=self.order_by,filter=self.filter)
@@ -183,7 +193,7 @@ class MyyMainWindow(QtWidgets.QMainWindow):
         self.tasksPage = TasksPage(self.ui.AllTasks_GridLayout,
                               self.ui.scrollAreaWidgetContents.layout(),
                               self.ui.scrollAreaWidgetContents_2.layout(),
-                              self.ui.addFolderbttn,None,None,
+                              self.ui.addFolderbttn,self.ui.CompletedTasks,None,None,
                               self.ui.SearchBar,self.ui.searchBttn,self.ui.Today)
 
     def on_AllTasksButton_released(self):
@@ -203,7 +213,8 @@ class MyyMainWindow(QtWidgets.QMainWindow):
         super().connectSlotsByName()
 
     def on_addTasbkttn_clicked(self):
-        self.TaskWindow=TasksWindow(self.tasks,self.tasksPage.refreshAll())
+        folderList = [i[0] for i in self.tasks.fetchFolders()]
+        self.TaskWindow=TasksWindow(self.tasks,folderList=folderList)
         self.TaskWindow.show()
 
 
