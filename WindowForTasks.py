@@ -10,13 +10,13 @@ import json
 ##MAKE SURE THAT SUBMIT BUTTON CLOSES THE WINDOW OK?
 
 class TasksWindow(QtWidgets.QWidget):
-    def __init__(self, T:Tasks,refreshFunc, taskobject:taskobject=None,folderList=[]):
+    def __init__(self, T:Tasks,taskobject:taskobject=None, refreshFunc=None):
         self.T=T
         self.taskobject=taskobject
         self.refreshFunc=refreshFunc
         super().__init__()
         self.setWindowTitle("Taskswindow")
-        self.setGeometry(500, 100, 500,500)
+        self.setGeometry(500, 100, 900,500)
         self.mainLayout=QtWidgets.QGridLayout()
 
         self.priority=None
@@ -37,8 +37,11 @@ class TasksWindow(QtWidgets.QWidget):
         #Row-2
         W2=G.genLabel("Folder",self.mainLayout,2,0)
         W2.setFont(G.HEADINGFONT)
+        self.folderList=[]
+        for i in self.T.fetchFolders():
+            self.folderList.append(i[0])
 
-        self.folder=G.genComboBox(folderList,self.mainLayout,2,1)
+        self.folder=G.genComboBox(self.folderList,self.mainLayout,2,1)
         if self.taskobject and self.taskobject.folder:
             self.folder.setCurrentText(self.taskobject.folder)
 
@@ -348,6 +351,8 @@ class TasksWindow(QtWidgets.QWidget):
                 if self.refreshFunc: self.refreshFunc()
 
             elif self.T.searchTask(d['task']):
+                if self.taskobject: self.T.updateTask(d['task'], priority= d['priority'], dt=date, folder=d['folder'],
+                            ReviveInterval=d['RevivalInterval'],RevivalType=d['RevivalType'])
                 G.produceError('Task already present')
                   
 
@@ -463,5 +468,5 @@ if __name__=='__main__':
 
     window.show()
 
-    sys.exit(app.exec_())
-'''
+    sys.exit(app.exec_())'''
+

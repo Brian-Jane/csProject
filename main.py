@@ -10,10 +10,9 @@ from datetime import datetime,timedelta
 
 from Libraries import Tasks
 from Libraries import Gui
-from addFolder import addFolderWindow
-from addFilter import addFilter
 
-from WindowForTasks import TasksWindow
+from WindowForTasks import TasksWindow 
+
 import sys
 import json
 
@@ -50,47 +49,26 @@ mycon = connector.connect(user='root',host='localhost',
                           password=config['password'],
                           database=config['database'])
 class TasksPage:
-    def __init__(self,tasksLayout:QtWidgets.QBoxLayout,foldersLayout,filterLayout,folderbttn,completedTasksbttn,filterbttn,
+    def __init__(self,tasksLayout:QtWidgets.QBoxLayout,foldersLayout,filterLayout,folderbttn,filterbttn,taskbttns,
                  searchBar,searchbttn,todaybttn):
         self.tasksLayout = tasksLayout
         self.foldersLayout = foldersLayout
         self.filterLayout = filterLayout
         self.folderbttn = folderbttn
-        self.completedTasksbttn = completedTasksbttn
         self.filterbttn = filterbttn
+        self.taskbttns = taskbttns
         self.searchBar = searchBar
-        self.filter2 = Tasks.Filter()
+
         self.tasks = Tasks.Tasks(mycon)
 
         self.filter = Tasks.Filter()
         self.filter.completedTask(False)
         self.order_by = "Tasks.slno"
-        def filter_toggled(checked):
-            if checked:
-                x = addFilter(self.filter2)
-                if x.exec_():
-                    self.filter2 = x.filter
-                    self.refreshTasks()
-            else:
-                self.filter2 = Tasks.Filter()
-                self.refreshTasks()
-
-        self.filterbttn.toggled.connect(filter_toggled)
         def taskButtonClicked(order_by):
             self.order_by=order_by
             self.refreshTasks()
         Gui.genTasksLayout(tasksLayout,taskButtonClicked)
-        def addButtonSlot():
-            folderList = [i[0] for i in self.tasks.fetchFolders()]
-            x = addFolderWindow(folderList)
-            a = x.exec_()
-            if a:
-                print("SJsjsj")
-                newFolder = x.newFolder
-                self.tasks.addFolder(newFolder[0],newFolder[1])
-                self.refreshFolders()
 
-        folderbttn.clicked.connect(addButtonSlot)
         self.folderButtonGroup = QtWidgets.QButtonGroup()
         self.folderButtonGroup.setExclusive(True)
         Nonebttn = QtWidgets.QPushButton("None")
@@ -99,12 +77,12 @@ class TasksPage:
         Nonebttn.clicked.connect(self.on_Nonebttn_clicked)
         foldersLayout.addWidget(Nonebttn)
         self.folderButtonGroup.addButton(Nonebttn)
-
-        def completedTasksCallback(checked):
-            self.filter.completedTask(checked)
-            self.refreshTasks()
-        completedTasksbttn.toggled.connect(completedTasksCallback)
+        
+        taskButtonGroup = QtWidgets.QButtonGroup()
+        taskButtonGroup.setExclusive(True)
+        
         def searchTask(checked:bool):
+            
             if checked:
                 msg = self.searchBar.text()
                 self.filter.searchMsg(msg)
@@ -140,16 +118,27 @@ class TasksPage:
     def renderTasks(self):
         """displays all tasks in the given input layout"""
         layout = self.tasksLayout
+        print(type(layout))
         def taskCheckboxCallback(ID):
-            if not self.filter.param[self.filter.completedTask]:self.tasks.completeTask(ID)
-            else:self.tasks.redoTask(ID)
+            self.tasks.completeTask(ID)
             self.refreshTasks()
-        L = self.tasks.fetchall(order_by=self.order_by,filter=self.filter,filter2=self.filter2)
+
+        def leftclicked_callback(task:Tasks.Tasks,taskobject:Tasks.taskobject):
+            self.TW=TasksWindow(task,taskobject)
+            self.TW.show()
+
+
+      
+        L = self.tasks.fetchall(order_by=self.order_by,filter=self.filter)
         for task in L:
             ID = task.ID
-            Gui.enterRow(layout,task,
-                         lambda clicked,ID=ID :taskCheckboxCallback(ID),
-                         color=task.color)           
+            Gui.enterRow(self.tasksLayout,task, 
+                         lambda clicked,ID=ID :taskCheckboxCallback(ID), 
+                         lambda: leftclicked_callback(self.tasks,task),
+                         color=task.color)  
+
+    
+             
     def refreshTasks(self):
         layout = self.tasksLayout
         self.tasks.refresh()
@@ -205,7 +194,7 @@ class MyyMainWindow(QtWidgets.QMainWindow):
         self.tasksPage = TasksPage(self.ui.AllTasks_GridLayout,
                               self.ui.scrollAreaWidgetContents.layout(),
                               self.ui.scrollAreaWidgetContents_2.layout(),
-                              self.ui.addFolderbttn,self.ui.CompletedTasks,self.ui.filter,
+                              self.ui.addFolderbttn,None,None,
                               self.ui.SearchBar,self.ui.searchBttn,self.ui.Today)
  
 
@@ -220,13 +209,15 @@ class MyyMainWindow(QtWidgets.QMainWindow):
         foldersIndex = self.stackedWidgetPages["Folders"]
         self.ui.stackedWidget.setCurrentIndex(foldersIndex)   
 
+
+#ConnectSlotsByName -->
+
     def connectSlotsByName(self):
         # Automatically connect signals to slots based on naming convention
         super().connectSlotsByName()
 
-    def on_addTasbkttn_released(self):
-        folderList = [i[0] for i in self.tasks.fetchFolders()]
-        self.TaskWindow=TasksWindow(self.tasks,self.tasksPage.refreshTasks,folderList=folderList)
+    def on_addTasbkttn_clicked(self):
+        self.TaskWindow=TasksWindow(self.tasks,self.tasksPage.refreshAll())
         self.TaskWindow.show()
 
 
