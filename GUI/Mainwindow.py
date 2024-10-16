@@ -81,6 +81,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.addWidget(self.Today)
         self.CompletedTasks = QtWidgets.QPushButton(self.TasksPage)
         self.CompletedTasks.setObjectName("CompletedTasks")
+        self.CompletedTasks.setCheckable(True)
         self.verticalLayout_3.addWidget(self.CompletedTasks)
         self.pushButton = QtWidgets.QPushButton(self.TasksPage)
         self.pushButton.setObjectName("pushButton")

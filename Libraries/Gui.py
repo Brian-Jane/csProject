@@ -7,6 +7,8 @@ import mysql.connector as m
 from Libraries.Tasks import *
 from typing import Union
 
+import WindowForTasks as WFT
+
 FONT= QtGui.QFont()
 FONT.setPointSize(10)
 

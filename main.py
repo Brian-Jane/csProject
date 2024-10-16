@@ -49,7 +49,7 @@ mycon = connector.connect(user='root',host='localhost',
                           password=config['password'],
                           database=config['database'])
 class TasksPage:
-    def __init__(self,tasksLayout,foldersLayout,filterLayout,folderbttn,filterbttn,taskbttns,
+    def __init__(self,tasksLayout:QtWidgets.QBoxLayout,foldersLayout,filterLayout,folderbttn,filterbttn,taskbttns,
                  searchBar,searchbttn,todaybttn):
         self.tasksLayout = tasksLayout
         self.foldersLayout = foldersLayout
@@ -127,7 +127,7 @@ class TasksPage:
             ID = task.ID
             Gui.enterRow(layout,task,
                          lambda clicked,ID=ID :taskCheckboxCallback(ID),
-                         color=task.color)
+                         color=task.color)           
     def refreshTasks(self):
         layout = self.tasksLayout
         self.tasks.refresh()
@@ -185,11 +185,14 @@ class MyyMainWindow(QtWidgets.QMainWindow):
                               self.ui.scrollAreaWidgetContents_2.layout(),
                               self.ui.addFolderbttn,None,None,
                               self.ui.SearchBar,self.ui.searchBttn,self.ui.Today)
+ 
 
     def on_AllTasksButton_released(self):
         allTasksIndex = self.stackedWidgetPages["AllTasks"]
         self.ui.stackedWidget.setCurrentIndex(allTasksIndex)
         self.refreshTasks(self.ui.AllTasks_GridLayout)
+
+        
 
     def on_FoldersButton_released(self):
         foldersIndex = self.stackedWidgetPages["Folders"]
