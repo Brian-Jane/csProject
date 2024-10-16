@@ -376,11 +376,15 @@ class Tasks:
         self.execute(f"UPDATE Tasks SET slno={new_pos_slno} WHERE slno=0")
         self.conn.commit()
     
-    def fetchall(self,order_by:str='Tasks.slno',folder:str='',filter:Filter=Filter()):
+    def fetchall(self,order_by:str='Tasks.slno',folder:str='',filter:Filter=Filter(),filter2 = Filter()):
         if order_by not in taskobject.attributes:
             print(order_by)
             raise ValueError("The order by argument must be a valid attribute")
         whereClause,whereParam = filter.generateWhereClause()
+        if filter2.param:
+            a,b = filter2.generateWhereClause()
+            whereClause += " AND "+ a
+            whereParam +=b
         if whereClause:
             whereClause = "WHERE "+whereClause
         clause = whereClause+f" ORDER BY {order_by}"

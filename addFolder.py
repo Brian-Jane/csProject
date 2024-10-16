@@ -9,10 +9,10 @@ import pprint
 import json
 
 
-class addFolderWindow(QtWidgets.QWidget):
-    def __init__(self,callback):
+class addFolderWindow(QtWidgets.QDialog):
+    def __init__(self,folderList):
         super().__init__()
-        self.callback = callback
+        self.folderList = folderList
         self.setWindowTitle("Add Folder")
         self.setGeometry(500, 100, 500,500)
         self.mainLayout=QtWidgets.QGridLayout()
@@ -27,14 +27,11 @@ class addFolderWindow(QtWidgets.QWidget):
         self.mainLayout.addWidget(self.color_button,1,1) 
         self.color_button.clicked.connect(self.colour_button_clicked)
 
-        
-
         self.submitbttn=QtWidgets.QPushButton('Submit')
         self.submitbttn.setFont(G.FONT)
         self.submitbttn.clicked.connect(self.submitbttn_clicked)
 
         self.mainLayout.addWidget(self.submitbttn)
-        
 
         self.setLayout(self.mainLayout)
 
@@ -45,16 +42,13 @@ class addFolderWindow(QtWidgets.QWidget):
         self.color = color.name()
         self.color_button.setStyleSheet(f'background-color: {self.color};  border: none; border-radius: 25px;')
 
-
     def submitbttn_clicked(self):
-        print(self.folder.text(),self.color)
-        if not self.callback(self.folder.text(),self.color):
-            G.produceError("Folder already there")
+        if self.folder.text() in self.folderList:
+            QtWidgets.QMessageBox.warning(self,"Warning","Folder already exists")
         else:
-            self.close()
-
-
-    
+            self.newFolder = (self.folder.text(),self.color)
+            self.accept()
+            
 """
 with open('config.json','r') as file:
     config = json.loads(file.read())

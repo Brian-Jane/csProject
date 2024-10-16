@@ -10,7 +10,7 @@ import json
 ##MAKE SURE THAT SUBMIT BUTTON CLOSES THE WINDOW OK?
 
 class TasksWindow(QtWidgets.QWidget):
-    def __init__(self, T:Tasks, taskobject:taskobject=None,folderList=[]):
+    def __init__(self, T:Tasks,refreshFunc, taskobject:taskobject=None,folderList=[]):
         self.T=T
         self.taskobject=taskobject
         self.refreshFunc=refreshFunc
