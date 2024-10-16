@@ -37,7 +37,7 @@ class TasksWindow(QtWidgets.QWidget):
         #Row-2
         W2=G.genLabel("Folder",self.mainLayout,2,0)
         W2.setFont(G.HEADINGFONT)
-        self.folderList=[]
+        self.folderList=[None]
         for i in self.T.fetchFolders():
             self.folderList.append(i[0])
 
@@ -351,9 +351,10 @@ class TasksWindow(QtWidgets.QWidget):
                 if self.refreshFunc: self.refreshFunc()
 
             elif self.T.searchTask(d['task']):
-                if self.taskobject: self.T.updateTask(d['task'], priority= d['priority'], dt=date, folder=d['folder'],
-                            ReviveInterval=d['RevivalInterval'],RevivalType=d['RevivalType'])
-                G.produceError('Task already present')
+                if self.taskobject: 
+                    self.T.updateTask(self.taskobject.slno, msg=d['task'], priority= d['priority'], dt=d['date'], Folder=d['folder'])
+                    self.close()
+                else:G.produceError('Task already present')
                   
 
     def is_valid_date(self, day: int, month: str):
