@@ -16,7 +16,7 @@ class TasksWindow(QtWidgets.QWidget):
         self.refreshFunc=refreshFunc
         super().__init__()
         self.setWindowTitle("Taskswindow")
-        self.setGeometry(500, 100, 900,500)
+        self.setGeometry(500, 100, 800,500)
         self.mainLayout=QtWidgets.QGridLayout()
 
         self.priority=None
@@ -450,7 +450,7 @@ class TasksWindow(QtWidgets.QWidget):
 
 
 
-'''with open('config.json','r') as f:
+with open('config.json','r') as f:
     config=json.load(f)
     conn=m.connect(user='root',host='LocalHost',
                    database=config['database'],
@@ -461,7 +461,7 @@ T=Tasks(conn)
 b=T.fetchall()
 
 
-if __name__=='__main__':
+'''if __name__=='__main__':
     app = QtWidgets.QApplication(sys.argv)
 
     window = TasksWindow(T,b[9])
