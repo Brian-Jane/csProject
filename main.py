@@ -153,7 +153,6 @@ class TasksPage:
         def modify_handler(task:Tasks.Tasks,taskobject:Tasks.taskobject):
             print("Received taskobject:", taskobject)
             if not (taskobject) : raise TypeError
-            print(type(taskobject))
             self.TW=TasksWindow(task,self.refreshTasks,taskobject,[i[0] for i in self.tasks.fetchFolders()])
             self.TW.show()
             self.refreshTasks()
@@ -162,10 +161,9 @@ class TasksPage:
         L = self.tasks.fetchall(order_by=self.order_by,filter=self.filter)
         for task in L:
             ID = task.ID
-            print(f"Current task: {task}")  # Check if task is None
             Gui.enterRow(self.tasksLayout,task, 
                          lambda clicked,ID=ID :taskCheckboxCallback(ID),        
-                         lambda a,b=task: delete_handler(self.tasks, b),  #<----I AM FACING PROBLEM HERE
+                         lambda a,b=task: delete_handler(self.tasks, b),  
                          color=task.color,modify_handler=lambda a,b=task:modify_handler(self.tasks,b))
     
              

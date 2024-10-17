@@ -342,8 +342,7 @@ class TasksWindow(QtWidgets.QWidget):
                 if self.taskobject:
                     self.T.updateTask(self.taskobject.ID,**d)
                 else:
-                    self.T.addTask(d['task'], d['priority'], date, d['folder'],
-                            ReviveInterval=d['RevivalInterval'],RevivalType=d['RevivalType'])
+                    self.T.addTask(d['msg'], d['priority'], date, d['Folder'], ReviveInterval=d['RevivalInterval'],RevivalType=d['RevivalType'])
                 
                 self.close()  #Close the window when submit is clicked
 
