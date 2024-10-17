@@ -81,6 +81,7 @@ class Ui_MainWindow(object):
         self.CompletedTasks = QtWidgets.QPushButton(self.TasksPage)
         self.CompletedTasks.setCheckable(True)
         self.CompletedTasks.setObjectName("CompletedTasks")
+        self.CompletedTasks.setCheckable(True)
         self.verticalLayout_3.addWidget(self.CompletedTasks)
         self.filter = QtWidgets.QPushButton(self.TasksPage)
         self.filter.setCheckable(True)
