@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'GUI/Mainwindow.ui'
+# Form implementation generated from reading ui file 'GUI\Mainwindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -81,7 +81,6 @@ class Ui_MainWindow(object):
         self.CompletedTasks = QtWidgets.QPushButton(self.TasksPage)
         self.CompletedTasks.setCheckable(True)
         self.CompletedTasks.setObjectName("CompletedTasks")
-        self.CompletedTasks.setCheckable(True)
         self.verticalLayout_3.addWidget(self.CompletedTasks)
         self.filter = QtWidgets.QPushButton(self.TasksPage)
         self.filter.setCheckable(True)
@@ -128,6 +127,14 @@ class Ui_MainWindow(object):
         self.addTasbkttn.setFont(font)
         self.addTasbkttn.setObjectName("addTasbkttn")
         self.horizontalLayout_2.addWidget(self.addTasbkttn)
+        self.refreshBttn = QtWidgets.QPushButton(self.TasksPage)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        self.refreshBttn.setFont(font)
+        self.refreshBttn.setObjectName("refreshBttn")
+        self.horizontalLayout_2.addWidget(self.refreshBttn)
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
         self.AllTasks_GridLayout = QtWidgets.QGridLayout()
         self.AllTasks_GridLayout.setObjectName("AllTasks_GridLayout")
@@ -442,6 +449,7 @@ class Ui_MainWindow(object):
         self.SearchBar.setPlaceholderText(_translate("MainWindow", "Search"))
         self.searchBttn.setText(_translate("MainWindow", "🔍"))
         self.addTasbkttn.setText(_translate("MainWindow", "+ Add Task"))
+        self.refreshBttn.setText(_translate("MainWindow", "⟳"))
         self.tabWidget.setWhatsThis(_translate("MainWindow", "<html><head/><body><p><br/></p></body></html>"))
         self.pushButton_10.setText(_translate("MainWindow", "Folder"))
         self.label_6.setWhatsThis(_translate("MainWindow", "<html><head/><body><p align=\"center\">5</p></body></html>"))
@@ -473,3 +481,13 @@ class Ui_MainWindow(object):
         self.label_13.setWhatsThis(_translate("MainWindow", "<html><head/><body><p align=\"center\">5</p></body></html>"))
         self.label_13.setText(_translate("MainWindow", "Label"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Folder11), _translate("MainWindow", "Folder-2"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())

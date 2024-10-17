@@ -243,6 +243,20 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QPushButton" name="refreshBttn">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>⟳</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>

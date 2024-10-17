@@ -17,20 +17,20 @@ def generateLighterColor(color):
     return Qcolor.lighter(30).name()
      
 
-def genCheckbox(task:taskobject,callback,layout:QtWidgets.QBoxLayout,
+def genCheckbox(task:taskobject,callback, delete_handler, modify_handler, layout:QtWidgets.QBoxLayout,
                 row:int,column:int,color=None):
-    checkbox=QtWidgets.QCheckBox(task.msg)
+    checkbox=rightClickableBttn(task)
     if color:
         background = generateLighterColor(color)
         checkbox.setStyleSheet(f"background-color:{background};border:5px solid;border-radius:10px;border-color:{color};")
     checkbox.clicked.connect(callback)
+    checkbox.setdelete_handler(delete_handler)
+    checkbox.setmodify_handler(modify_handler)
     checkbox.setFont(FONT)
 
     layout.addWidget(checkbox,row,column)
 
-def checkbox_clicked(checkbox:QtWidgets.QCheckBox,task:taskobject):
-    print(checkbox.text(),"is clicked!")
-    t.completeTask(task.ID)
+
 
 def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,color=None):
     Label=QtWidgets.QLabel(data)
@@ -93,11 +93,12 @@ def genTasksLayout(tasksLayout,callback):
     tasksLayout.addItem(spacer,1,0)
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
-             checkBoxCallback,color):
+             checkBoxCallback, delete_handler, modify_handler, color):
+    
     if task==None:
         print("Task contains nothing! Try avoiding repeating tasks")
         return None
-    if type(layout)!=QtWidgets.QGridLayout: 
+    if not isinstance(layout,QtWidgets.QGridLayout): 
         print("you can use this function only for GridLayout \
               Try again")
         return None
@@ -114,12 +115,13 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
     for i in range(1,8,2):
         genLine(layout,lastrow,i)
     genLabel(str(slno),layout,lastrow,0,color)
-    genCheckbox(task,checkBoxCallback,layout,lastrow,2,color)
+    genCheckbox(task.msg,checkBoxCallback,delete_handler, modify_handler,layout,lastrow,2,color)
     genLabel(str(priority),layout,lastrow,4,color)
     genLabel(str(DueDate),layout,lastrow,6,color)
     genLabel(folder,layout,lastrow,8,color)
     spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
     layout.addItem(spacer,lastrow+1,0)
+
 def deleteRow(layout:QtWidgets.QGridLayout,row):
     for i in range(layout.columnCount()):
         item = layout.itemAtPosition(row,i)
@@ -133,13 +135,6 @@ def deleteRow(layout:QtWidgets.QGridLayout,row):
 
 
 
-def loadUI(main_layout:QtWidgets.QLayout, Tlayout:QtWidgets.QLayout, Flayout:QtWidgets.QLayout):   #This function is not yet complete. Kindly ignore
-    #Tasks
-    Tasks=t.fetchall()
-    for i in Tasks:
-        enterRow(Tlayout,i[2],i[3],i[4],i[5])
- 
-"""Have to do the same for folders too"""
 
 class Folder(QtWidgets.QWidget):
     def __init__(self,text,color,editCallback,selectCallback,deleteCallback,buttonGroup):
@@ -197,3 +192,39 @@ class editableButton(QtWidgets.QPushButton):
         else:
             super().contextMenuEvent(event)
     
+
+class rightClickableBttn(QtWidgets.QCheckBox):
+    rightClicked = QtCore.pyqtSignal()
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        self.delete_handler=None
+        self.modify_handler=None
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.RightButton:
+            self.rightClicked.emit()
+            event.accept()  # Stop event propagation
+        else:
+            super().mousePressEvent(event)
+    def setdelete_handler(self,func):
+        self.delete_handler=func
+    def setmodify_handler(self,func):
+        self.modify_handler=func
+    def contextMenuEvent(self, event):
+        context_menu = QtWidgets.QMenu(self)
+        delete = context_menu.addAction("Delete Task")
+        modify = context_menu.addAction("Modify Task")
+
+        # Connect the actions to handlers only if they are set
+        if self.delete_handler:
+            delete.triggered.connect(self.delete_handler)
+        else:
+            delete.triggered.connect(lambda: print("Delete handler not set"))
+
+        if self.modify_handler:
+            modify.triggered.connect(self.modify_handler)
+        else:
+            modify.triggered.connect(lambda: print("Modify handler not set"))
+
+        context_menu.exec_(event.globalPos())  # Show the context menu
+
+        
