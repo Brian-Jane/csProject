@@ -17,14 +17,13 @@ def generateLighterColor(color):
     return Qcolor.lighter(30).name()
      
 
-def genCheckbox(task:taskobject,callback, leftclick_callback,layout:QtWidgets.QBoxLayout,
+def genCheckbox(task:taskobject,callback,layout:QtWidgets.QBoxLayout,
                 row:int,column:int,color=None):
-    checkbox=leftClickableBttn(task)
+    checkbox=QtWidgets.QCheckBox(task.msg)
     if color:
         background = generateLighterColor(color)
         checkbox.setStyleSheet(f"background-color:{background};border:5px solid;border-radius:10px;border-color:{color};")
     checkbox.clicked.connect(callback)
-    checkbox.leftClicked.connect(leftclick_callback)
     checkbox.setFont(FONT)
 
     layout.addWidget(checkbox,row,column)
@@ -94,12 +93,11 @@ def genTasksLayout(tasksLayout,callback):
     tasksLayout.addItem(spacer,1,0)
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
-             checkBoxCallback, leftclick_callback,color):
-    
+             checkBoxCallback,color):
     if task==None:
         print("Task contains nothing! Try avoiding repeating tasks")
         return None
-    if not isinstance(layout,QtWidgets.QGridLayout): 
+    if type(layout)!=QtWidgets.QGridLayout: 
         print("you can use this function only for GridLayout \
               Try again")
         return None
@@ -116,13 +114,12 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
     for i in range(1,8,2):
         genLine(layout,lastrow,i)
     genLabel(str(slno),layout,lastrow,0,color)
-    genCheckbox(task.msg,checkBoxCallback,leftclick_callback,layout,lastrow,2,color)
+    genCheckbox(task,checkBoxCallback,layout,lastrow,2,color)
     genLabel(str(priority),layout,lastrow,4,color)
     genLabel(str(DueDate),layout,lastrow,6,color)
     genLabel(folder,layout,lastrow,8,color)
     spacer=QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
     layout.addItem(spacer,lastrow+1,0)
-
 def deleteRow(layout:QtWidgets.QGridLayout,row):
     for i in range(layout.columnCount()):
         item = layout.itemAtPosition(row,i)
@@ -200,12 +197,3 @@ class editableButton(QtWidgets.QPushButton):
         else:
             super().contextMenuEvent(event)
     
-
-class leftClickableBttn(QtWidgets.QCheckBox):
-    leftClicked = QtCore.pyqtSignal()
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-    def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            self.leftClicked.emit()  # Emit the leftClicked signal
-        super().mousePressEvent(event)  # Call the base class method
