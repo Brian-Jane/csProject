@@ -17,19 +17,21 @@ def generateLighterColor(color):
     return Qcolor.lighter(30).name()
      
 
-def genCheckbox(task:taskobject,callback, rightclick_callback,layout:QtWidgets.QBoxLayout,
+def genCheckbox(task:taskobject,callback, leftclick_callback,layout:QtWidgets.QBoxLayout,
                 row:int,column:int,color=None):
-    checkbox=rightClickableBttn(task)
+    checkbox=leftClickableBttn(task)
     if color:
         background = generateLighterColor(color)
         checkbox.setStyleSheet(f"background-color:{background};border:5px solid;border-radius:10px;border-color:{color};")
     checkbox.clicked.connect(callback)
-    checkbox.rightClicked.connect(rightclick_callback)
+    checkbox.leftClicked.connect(leftclick_callback)
     checkbox.setFont(FONT)
 
     layout.addWidget(checkbox,row,column)
 
-
+def checkbox_clicked(checkbox:QtWidgets.QCheckBox,task:taskobject):
+    print(checkbox.text(),"is clicked!")
+    t.completeTask(task.ID)
 
 def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,color=None):
     Label=QtWidgets.QLabel(data)
@@ -92,7 +94,7 @@ def genTasksLayout(tasksLayout,callback):
     tasksLayout.addItem(spacer,1,0)
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
-             checkBoxCallback, rightclick_callback,color):
+             checkBoxCallback, leftclick_callback,color):
     
     if task==None:
         print("Task contains nothing! Try avoiding repeating tasks")
@@ -114,7 +116,7 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
     for i in range(1,8,2):
         genLine(layout,lastrow,i)
     genLabel(str(slno),layout,lastrow,0,color)
-    genCheckbox(task.msg,checkBoxCallback,rightclick_callback,layout,lastrow,2,color)
+    genCheckbox(task.msg,checkBoxCallback,leftclick_callback,layout,lastrow,2,color)
     genLabel(str(priority),layout,lastrow,4,color)
     genLabel(str(DueDate),layout,lastrow,6,color)
     genLabel(folder,layout,lastrow,8,color)
@@ -134,6 +136,13 @@ def deleteRow(layout:QtWidgets.QGridLayout,row):
 
 
 
+def loadUI(main_layout:QtWidgets.QLayout, Tlayout:QtWidgets.QLayout, Flayout:QtWidgets.QLayout):   #This function is not yet complete. Kindly ignore
+    #Tasks
+    Tasks=t.fetchall()
+    for i in Tasks:
+        enterRow(Tlayout,i[2],i[3],i[4],i[5])
+ 
+"""Have to do the same for folders too"""
 
 class Folder(QtWidgets.QWidget):
     def __init__(self,text,color,editCallback,selectCallback,deleteCallback,buttonGroup):
@@ -192,11 +201,11 @@ class editableButton(QtWidgets.QPushButton):
             super().contextMenuEvent(event)
     
 
-class rightClickableBttn(QtWidgets.QCheckBox):
-    rightClicked = QtCore.pyqtSignal()
+class leftClickableBttn(QtWidgets.QCheckBox):
+    leftClicked = QtCore.pyqtSignal()
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
     def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.RightButton:
-            self.rightClicked.emit()  # Emit the rightClicked signal
+        if event.button() == QtCore.Qt.LeftButton:
+            self.leftClicked.emit()  # Emit the leftClicked signal
         super().mousePressEvent(event)  # Call the base class method

@@ -214,9 +214,9 @@ class Tasks:
             L = cur.fetchall()            
             if L:
                 RevInterval,revtype,doc = L[0]
-                if revtype == 'a':
+                if revtype.lower() == 'a':
                     Revdt = datetime.datetime.now() + datetime.timedelta(seconds=RevInterval)
-                elif revtype == 'e':
+                elif revtype.lower() == 'e':
                     x:datetime.timedelta = (datetime.datetime.now() - doc)
                     n:int = math.ceil(x.total_seconds()/RevInterval)
                     Revdt = doc + datetime.timedelta(seconds=n * RevInterval)

@@ -123,8 +123,7 @@ class TasksPage:
             self.tasks.completeTask(ID)
             self.refreshTasks()
 
-        def rightclicked_callback(task:Tasks.Tasks,taskobject:Tasks.taskobject):
-            print("Right clicked a button:",taskobject.msg)
+        def leftclicked_callback(task:Tasks.Tasks,taskobject:Tasks.taskobject):
             self.TW=TasksWindow(task,taskobject)
             self.TW.show()
 
@@ -135,8 +134,9 @@ class TasksPage:
             ID = task.ID
             Gui.enterRow(self.tasksLayout,task, 
                          lambda clicked,ID=ID :taskCheckboxCallback(ID), 
-                         lambda current_task=task: rightclicked_callback(self.tasks,current_task),
-                         color=task.color)
+                         lambda: leftclicked_callback(self.tasks,task),
+                         color=task.color)  
+
     
              
     def refreshTasks(self):
