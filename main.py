@@ -136,7 +136,6 @@ class TasksPage:
             self.filter.undo(self.filter.folder)
         except:pass
         self.refreshTasks()
-
     def renderTasks(self):
         """displays all tasks in the given input layout"""
         layout = self.tasksLayout
@@ -155,7 +154,7 @@ class TasksPage:
             print("Received taskobject:", taskobject)
             if not (taskobject) : raise TypeError
             print(type(taskobject))
-            self.TW=TasksWindow(task,taskobject)
+            self.TW=TasksWindow(task,self.refreshTasks,taskobject,[i[0] for i in self.tasks.fetchFolders()])
             self.TW.show()
             self.refreshTasks()
 
@@ -166,8 +165,8 @@ class TasksPage:
             print(f"Current task: {task}")  # Check if task is None
             Gui.enterRow(self.tasksLayout,task, 
                          lambda clicked,ID=ID :taskCheckboxCallback(ID),        
-                         lambda : delete_handler(self.tasks, task),  #<----I AM FACING PROBLEM HERE
-                         color=task.color)
+                         lambda a,b=task: delete_handler(self.tasks, b),  #<----I AM FACING PROBLEM HERE
+                         color=task.color,modify_handler=lambda a,b=task:modify_handler(self.tasks,b))
     
              
     def refreshTasks(self):

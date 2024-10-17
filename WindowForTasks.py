@@ -325,29 +325,31 @@ class TasksWindow(QtWidgets.QWidget):
 
         if c==1:
             d={
-                'task': self.task.text(), 
+                'msg': self.task.text(), 
                  'priority': int(self.priority), 
-                 'date' : date,
-                 'folder':self.folder.currentText(),
+                 'dt' : date,
+                 'Folder':self.folder.currentText(),
                  'RevivalInterval':self.RevIntrvl,
                  'RevivalType':self.Revtype,
-                 'DOC':self.DOC
-                    }
+                }
             
-            if d['folder']=='None':
-                d['folder']=None
+            if d['Folder']=='None':
+                d['Folder']=None
         
             pprint.pprint(d)
 
-            if not self.T.searchTask(d['task']):
-                self.T.addTask(d['task'], d['priority'], date, d['folder'],
+            if not self.T.searchTask(d['msg']):
+                if self.taskobject:
+                    self.T.updateTask(self.taskobject.ID,**d)
+                else:
+                    self.T.addTask(d['task'], d['priority'], date, d['folder'],
                             ReviveInterval=d['RevivalInterval'],RevivalType=d['RevivalType'])
                 
                 self.close()  #Close the window when submit is clicked
 
                 if self.refreshFunc: self.refreshFunc()
 
-            elif self.T.searchTask(d['task']):
+            else:
                 G.produceError('Task already present')
                   
 

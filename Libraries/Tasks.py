@@ -301,13 +301,13 @@ class Tasks:
         self.execute(f"ALTER TABLE Tasks AUTO_INCREMENT = 0") #reset auto increment
         self.conn.commit()
     
-    def updateTask(self,  slno:int, **kwargs):
+    def updateTask(self,  ID:int, **kwargs):
         msg=''
         q1 = "UPDATE Tasks SET "
-        q2 = "UPDATE RevT SET"
+        q2 = "UPDATE RevT SET "
         Lq1,Lq2,Lv1,Lv2 = [],[],[],[]
         for column in kwargs:
-            if column not in ['msg','priority','dt','Folder']:
+            if column not in ['msg','priority','dt','Folder','RevivalInterval','RevivalType']:
                 raise ValueError(f"'{column}' is an unknown column")
             
             if column in ['msg','priority','dt','Folder']:
@@ -320,10 +320,10 @@ class Tasks:
                 Lq2.append(f'{column}=%s')
                 Lv2.append(kwargs[column])
             
-        query1  = q1 + ','.join(Lq1) + "WHERE slno=%s"
-        query2 = q2 + ','.join(Lq2) + "WHERE slno=%s"
-        Lv1.append(slno)
-        Lv2.append(slno)
+        query1  = q1 + ','.join(Lq1) + " WHERE ID=%s"
+        query2 = q2 + ','.join(Lq2) + " WHERE ID=%s"
+        Lv1.append(ID)
+        Lv2.append(ID)
         if Lv1[1:]:self.execute(query1,Lv1)
         if Lv2[1:]:self.execute(query2,Lv2)
         self.conn.commit()
