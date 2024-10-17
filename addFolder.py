@@ -47,11 +47,11 @@ class addFolderWindow(QtWidgets.QDialog):
             QtWidgets.QMessageBox.warning(self,"Warning","Folder already exists")
         else:
             self.newFolder = (self.folder.text(),self.color)
-            self.close()
+            self.accept()
             
 
 
-with open('config.json','r') as file:
+'''with open('config.json','r') as file:
     config = json.loads(file.read())
 mycon = m.connect(user='root',host='localhost',
                           password=config['password'],
@@ -63,5 +63,5 @@ window = addFolderWindow(t)
 
 window.show()
 
-sys.exit(app.exec_())
+sys.exit(app.exec_())'''
 

@@ -17,14 +17,15 @@ def generateLighterColor(color):
     return Qcolor.lighter(30).name()
      
 
-def genCheckbox(task:taskobject,callback, rightclick_callback,layout:QtWidgets.QBoxLayout,
+def genCheckbox(task:taskobject,callback, delete_handler, modify_handler, layout:QtWidgets.QBoxLayout,
                 row:int,column:int,color=None):
     checkbox=rightClickableBttn(task)
     if color:
         background = generateLighterColor(color)
         checkbox.setStyleSheet(f"background-color:{background};border:5px solid;border-radius:10px;border-color:{color};")
     checkbox.clicked.connect(callback)
-    checkbox.rightClicked.connect(rightclick_callback)
+    checkbox.setdelete_handler(delete_handler)
+    checkbox.setmodify_handler(modify_handler)
     checkbox.setFont(FONT)
 
     layout.addWidget(checkbox,row,column)
@@ -92,7 +93,7 @@ def genTasksLayout(tasksLayout,callback):
     tasksLayout.addItem(spacer,1,0)
 
 def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
-             checkBoxCallback, rightclick_callback,color):
+             checkBoxCallback, delete_handler, modify_handler, color):
     
     if task==None:
         print("Task contains nothing! Try avoiding repeating tasks")
@@ -114,7 +115,7 @@ def enterRow(layout:QtWidgets.QBoxLayout, task:taskobject,
     for i in range(1,8,2):
         genLine(layout,lastrow,i)
     genLabel(str(slno),layout,lastrow,0,color)
-    genCheckbox(task.msg,checkBoxCallback,rightclick_callback,layout,lastrow,2,color)
+    genCheckbox(task.msg,checkBoxCallback,delete_handler, modify_handler,layout,lastrow,2,color)
     genLabel(str(priority),layout,lastrow,4,color)
     genLabel(str(DueDate),layout,lastrow,6,color)
     genLabel(folder,layout,lastrow,8,color)
@@ -196,7 +197,34 @@ class rightClickableBttn(QtWidgets.QCheckBox):
     rightClicked = QtCore.pyqtSignal()
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
+        self.delete_handler=None
+        self.modify_handler=None
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.RightButton:
-            self.rightClicked.emit()  # Emit the rightClicked signal
-        super().mousePressEvent(event)  # Call the base class method
+            self.rightClicked.emit()
+            event.accept()  # Stop event propagation
+        else:
+            super().mousePressEvent(event)
+    def setdelete_handler(self,func):
+        self.delete_handler=func
+    def setmodify_handler(self,func):
+        self.modify_handler=func
+    def contextMenuEvent(self, event):
+        context_menu = QtWidgets.QMenu(self)
+        delete = context_menu.addAction("Delete Task")
+        modify = context_menu.addAction("Modify Task")
+
+        # Connect the actions to handlers only if they are set
+        if self.delete_handler:
+            delete.triggered.connect(self.delete_handler)
+        else:
+            delete.triggered.connect(lambda: print("Delete handler not set"))
+
+        if self.modify_handler:
+            modify.triggered.connect(self.modify_handler)
+        else:
+            modify.triggered.connect(lambda: print("Modify handler not set"))
+
+        context_menu.exec_(event.globalPos())  # Show the context menu
+
+        

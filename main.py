@@ -123,19 +123,27 @@ class TasksPage:
             self.tasks.completeTask(ID)
             self.refreshTasks()
 
-        def rightclicked_callback(task:Tasks.Tasks,taskobject:Tasks.taskobject):
-            print("Right clicked a button:",taskobject.msg)
+        def delete_handler(task:Tasks.Tasks,taskobject:Tasks.taskobject):
+            if not (taskobject) : raise ValueError
+            task.delTask(taskobject.slno)
+            self.refreshTasks()
+
+        def modify_handler(task:Tasks.Tasks,taskobject:Tasks.taskobject):
+            print("Received taskobject:", taskobject)
+            if not (taskobject) : raise TypeError
+            print(type(taskobject))
             self.TW=TasksWindow(task,taskobject)
             self.TW.show()
-
+            self.refreshTasks()
 
       
         L = self.tasks.fetchall(order_by=self.order_by,filter=self.filter)
         for task in L:
             ID = task.ID
+            print(f"Current task: {task}")  # Check if task is None
             Gui.enterRow(self.tasksLayout,task, 
-                         lambda clicked,ID=ID :taskCheckboxCallback(ID), 
-                         lambda current_task=task: rightclicked_callback(self.tasks,current_task),
+                         lambda clicked,ID=ID :taskCheckboxCallback(ID),        
+                         lambda : delete_handler(self.tasks, task),  #<----I AM FACING PROBLEM HERE
                          color=task.color)
     
              
@@ -179,6 +187,8 @@ class TasksPage:
     def refreshAll(self):
         self.refreshFolders()
         self.refreshTasks()
+
+    
     
 class MyyMainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -219,6 +229,9 @@ class MyyMainWindow(QtWidgets.QMainWindow):
     def on_addTasbkttn_clicked(self):
         self.TaskWindow=TasksWindow(self.tasks,self.tasksPage.refreshAll())
         self.TaskWindow.show()
+
+    def on_refreshBttn_clicked(self):
+        self.tasksPage.refreshAll()
 
 
 MainWindow = MyyMainWindow()
