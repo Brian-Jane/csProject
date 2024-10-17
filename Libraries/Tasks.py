@@ -302,28 +302,31 @@ class Tasks:
         self.conn.commit()
     
     def updateTask(self,  slno:int, **kwargs):
-        with self.conn.cursor() as cur:
-            q1 = "UPDATE Tasks SET "
-            q2 = "UPDATE RevT SET"
-            Lq1,Lq2,Lv1,Lv2 = [],[],[],[]
-            for column in kwargs:
-                if column not in ['msg','priority','dt','Folder']:
-                    raise ValueError(f"'{column}' is an unknown column")
-                
-                if column in ['msg','priority','dt','Folder']:
-                    Lq1.append(f'{column}=%s')
+        msg=''
+        q1 = "UPDATE Tasks SET "
+        q2 = "UPDATE RevT SET"
+        Lq1,Lq2,Lv1,Lv2 = [],[],[],[]
+        for column in kwargs:
+            if column not in ['msg','priority','dt','Folder']:
+                raise ValueError(f"'{column}' is an unknown column")
+            
+            if column in ['msg','priority','dt','Folder']:
+                Lq1.append(f'{column}=%s')
+                if column=='msg':
+                    Lv1.append(kwargs[column].lower())
+                else:
                     Lv1.append(kwargs[column])
-                if column in ['RevivalInterval', 'RevivalType']: 
-                    Lq2.append(f'{column}=%s')
-                    Lv2.append(kwargs[column])
-                
-            query1  = q1 + ','.join(Lq1) + " WHERE slno=%s"
-            query2 = q2 + ','.join(Lq2) + " WHERE slno=%s"
-            Lv1.append(slno)
-            Lv2.append(slno)
-            if Lv1[1:]:cur.execute(query1,Lv1)
-            if Lv2[1:]:cur.execute(query2,Lv2)
-            self.conn.commit()
+            if column in ['RevivalInterval', 'RevivalType']: 
+                Lq2.append(f'{column}=%s')
+                Lv2.append(kwargs[column])
+            
+        query1  = q1 + ','.join(Lq1) + "WHERE slno=%s"
+        query2 = q2 + ','.join(Lq2) + "WHERE slno=%s"
+        Lv1.append(slno)
+        Lv2.append(slno)
+        if Lv1[1:]:self.execute(query1,Lv1)
+        if Lv2[1:]:self.execute(query2,Lv2)
+        self.conn.commit()
 
     def searchTask(self, task:str) ->list:
         """Searches for a task"""
