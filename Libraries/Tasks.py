@@ -88,7 +88,6 @@ class Filter:
             conditions.append(self.conditions[i])
             values+=(val,)
         query = ' AND '.join(conditions)
-        print(query,values)
         return query,values
     
 class Tasks:   
@@ -178,8 +177,6 @@ class Tasks:
         while x>0:
             try:
                 with conn.cursor() as cur:
-                    if values:
-                        print(cmd,values)
                     cur.execute(cmd,values)
                 break
             except Error as e:
@@ -378,7 +375,6 @@ class Tasks:
     
     def fetchall(self,order_by:str='Tasks.slno',folder:str='',filter:Filter=Filter(),filter2 = Filter()):
         if order_by not in taskobject.attributes:
-            print(order_by)
             raise ValueError("The order by argument must be a valid attribute")
         whereClause,whereParam = filter.generateWhereClause()
         if filter2.param:
@@ -412,21 +408,6 @@ class Tasks:
     def close(self):
         self.conn.close()
     
-    def filter(self, msg: str='', Status='', DueDate:datetime.datetime=None, Priority:int=0,  Folder:int=""):
-        Criteria=[]
-        with self.conn.cursor() as cur:
-            if Status!='': Criteria.append(f"iscompleted='{Status}'")
-            if DueDate: Criteria.append(f"dt='{DueDate}'")
-            if Priority: Criteria.append(f"priority={Priority}")
-            if Folder: Criteria.append(f"folder='{Folder}'")
-            if msg:
-                msg=msg
-                Criteria.append(f"msg LIKE '%{msg}%'")
-
-            q="AND".join(Criteria)
-            cur.execute(f"SELECT * FROM Tasks WHERE {q}")
-            return cur.fetchall()
-           
 class taskobject:
     # Make sure the instance is not None.
     # While adding task, if the task is repeated, then it will give None.
@@ -464,74 +445,3 @@ doc:{self.DOC}
 revdt:{self.Revdate}
 """ 
         return string
-
-class Event:
-    def __init__(self, conn:MySQLConnection):
-        self.conn=conn
-        with conn.cursor() as cur:
-            tables = self.getTables()
-            ev = 0
-            for i in tables:
-                if i[0]=='events':ev=i[1]
-            if ev!=EVENT_TABLE_VERSION:
-                if ev!=0:
-                    cur.execute("RENAME TABLE Events to TEMPEvents")                    
-                    cur.execute(CREATE_COMMAND_EVENTS)                 
-                    cur.execute("INSERT INTO Events SELECT * FROM TEMPEvents")
-                    cur.execute("DROP TABLE TEMPEvents")
-                else:                    
-                    cur.execute(CREATE_COMMAND_EVENTS)
-
-            cur.execute(CREATE_COMMAND_EVENTS)
-        conn.commit()
-
-    def getTables(self):#returns a list of all tables with its versions in the database
-        with self.conn.cursor() as cur:
-            cur.execute(f"SELECT table_name, table_comment FROM information_schema.tables\
-                        WHERE table_schema='{self.conn.database}'") #queries all the tables from database
-            x = cur.fetchall()
-        return x
-    
-    def execute(self,query):
-        with self.conn.cursor() as cur:
-            cur.execute(query)
-    
-    def addEvents(self, msg:str ,priority:int = 5, dt:datetime.datetime='', folder:str=''):
-        if folder:folder = f'"{folder}"' #annoyingly enough mysql needs quotes around string
-        else:folder = "NULL"             #but quotes around "NULL" immediately makes it a string of "NULL", so this
-        if dt!='':dt = f'"{str(dt)}"' #same issue
-        else: dt = 'NULL'
-        self.execute(f"INSERT INTO Events(msg,priority,dt,folder) VALUES\
-                    ('{msg}',{priority},{str(dt)},{folder})")    
-        self.conn.commit()
-
-    def delEvents(self, slno:int):
-        self.execute(f"DELETE FROM Events WHERE slno={slno}")
-        self.execute(f"UPDATE Events SET slno = slno-1 WHERE slno>{slno}") #correct the gap 
-        self.execute(f"ALTER TABLE Events AUTO_INCREMENT = 0") #reset auto increment
-        self.conn.commit()
-    
-    def updateEvents(self,  slno:int, msg:str ,priority:int = 5, dt:datetime.datetime='NULL'):
-        self.execute(f"UPDATE Events SET msg='{msg}',priority={priority},dt={dt} WHERE slno={slno}")
-        self.conn.commit()
-
-    def reorderEvents(self,slno:int,new_pos_slno:int):
-        self.execute(f"UPDATE Events SET slno=0 where slno={slno}")
-        if(slno > new_pos_slno):
-            self.execute(f"UPDATE Events SET slno=slno+1 WHERE slno BETWEEN {new_pos_slno} AND {slno} ORDER BY slno DESC")
-        else:
-            self.execute(f"UPDATE Events SET slno=slno-1 WHERE slno BETWEEN {slno} AND {new_pos_slno} ORDER BY slno ASC")
-        self.execute(f"UPDATE Events SET slno={new_pos_slno} WHERE slno=0")
-        self.conn.commit()
-    
-    def modify(self, slno:int, event:str='', dt:datetime.datetime=None):
-        with self.conn.cursor() as cur:
-            Condition=[]
-            if event: 
-                Condition.append(f"msg='{event}'")
-            if dt:
-                Condition.append(f"dt='{dt}'")
-
-            Condition_str= ', '.join(Condition)
-            cur.execute(f"UPDATE Events SET {Condition_str} WHERE slno={slno}")
-            self.conn.commit()

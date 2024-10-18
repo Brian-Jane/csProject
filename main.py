@@ -85,7 +85,6 @@ class TasksPage:
             x = addFolderWindow(folderList)
             a = x.exec_()
             if a:
-                print("SJsjsj")
                 newFolder = x.newFolder
                 self.tasks.addFolder(newFolder[0],newFolder[1])
                 self.refreshFolders()
@@ -143,7 +142,7 @@ class TasksPage:
             if not self.filter.param[self.filter.completedTask]:self.tasks.completeTask(ID)
             else:self.tasks.redoTask(ID)
             self.refreshTasks()
-        L = self.tasks.fetchall(order_by=self.order_by,filter=self.filter,filter2=self.filter2)
+        
 
         def delete_handler(task:Tasks.Tasks,taskobject:Tasks.taskobject):
             if not (taskobject) : raise ValueError
@@ -151,14 +150,11 @@ class TasksPage:
             self.refreshTasks()
 
         def modify_handler(task:Tasks.Tasks,taskobject:Tasks.taskobject):
-            print("Received taskobject:", taskobject)
             if not (taskobject) : raise TypeError
             self.TW=TasksWindow(task,self.refreshTasks,taskobject,[i[0] for i in self.tasks.fetchFolders()])
             self.TW.show()
             self.refreshTasks()
-
-      
-        L = self.tasks.fetchall(order_by=self.order_by,filter=self.filter)
+        L = self.tasks.fetchall(order_by=self.order_by,filter=self.filter,filter2=self.filter2)
         for task in L:
             ID = task.ID
             Gui.enterRow(self.tasksLayout,task, 

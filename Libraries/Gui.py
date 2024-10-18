@@ -1,13 +1,7 @@
-import sys
-import os
+
 from PyQt5 import QtWidgets,QtGui,QtCore
-import datetime
-import mysql.connector as m
 
 from Libraries.Tasks import *
-from typing import Union
-
-import WindowForTasks as WFT
 
 FONT= QtGui.QFont()
 FONT.setPointSize(10)
@@ -50,15 +44,6 @@ def genLineEdit(layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
     LineEdit.setFont(FONT)
     return LineEdit
 
-def newWindow(nWindow:QtWidgets.QMainWindow, cWindow:QtWidgets.QMainWindow=None, close:bool=False):
-    #If close is True, this function will close the current window
-    n_instance=nWindow()
-    if close:
-        c_instance=cWindow()
-        c_instance.close()
-        n_instance.show()
-    else:
-        n_instance.show()
 def genLine(layout:QtWidgets.QBoxLayout,row,column):
     v_line = QtWidgets.QFrame()
     v_line.setFrameShape(QtWidgets.QFrame.VLine)  # Vertical line

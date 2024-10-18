@@ -298,14 +298,14 @@ class TasksWindow(QtWidgets.QWidget):
                 #IF c=1, only then the program will execute
 
         if not self.task.text():
-            G.produceError("Please enter the task")
+            QtWidgets.QMessageBox.warning(self,"Warning","Please enter the task")
             c=0
         else:
             '''print(f"Month: {month}, Type: {type(month)}")'''
             if self.is_valid_date(day,month):
                 c=1
             else:
-                G.produceError("Invalid Date")
+                QtWidgets.QMessageBox.warning(self,"Warning","Invalid Date")
                 c=0
 
         if day=='' and month=='':
@@ -318,7 +318,7 @@ class TasksWindow(QtWidgets.QWidget):
                 c=1
                 if date <= datetime.datetime.now():
                     c=0
-                    G.produceError("Date has already passed")  
+                    QtWidgets.QMessageBox.warning(self,"Warning","Date has already passed")  
             except:
                 pass
 
@@ -335,8 +335,6 @@ class TasksWindow(QtWidgets.QWidget):
             
             if d['Folder']=='None':
                 d['Folder']=None
-        
-            pprint.pprint(d)
 
             if not self.T.searchTask(d['msg']):
                 if self.taskobject:
@@ -349,7 +347,7 @@ class TasksWindow(QtWidgets.QWidget):
                 if self.refreshFunc: self.refreshFunc()
 
             else:
-                G.produceError('Task already present')
+                QtWidgets.QMessageBox.warning(self,"Error","Task Already Present")
                   
 
     def is_valid_date(self, day: int, month: str):
@@ -409,60 +407,4 @@ class TasksWindow(QtWidgets.QWidget):
                 run = False  # Not a leap year if not divisible by 4
 
         return run
-        
-#------------------------------------------------------------------------------------------------------------------------
-
-#Ignore for Now
-    def reorder(self, W1:QtWidgets.QWidget,     #W1= ENter task label        
-                W2:QtWidgets.QWidget,           #W2= Enter task textbox                                                         
-                W3:QtWidgets.QWidget,           #W3= Vertical spacer_1                                                                
-                W4:QtWidgets.QWidget,           #W4= Folder label                                                                                                                   
-                W5:QtWidgets.QWidget,           #W5= Folder combobox                                   
-                W6:QtWidgets.QWidget,           #W6= Vertical spacer_2                                                            
-                W7:QtWidgets.QWidget,           #W7= Due Date label                                                
-                W8:QtWidgets.QWidget,           #W8= Due date Layout                                                                                                                                                       
-                W9:QtWidgets.QWidget,           #W9= Vertical spacer_3                                                           
-                W10:QtWidgets.QWidget,          #W10= Priority label                                                                            
-                W11:QtWidgets.QWidget,          #W11= Priority layout                                                                                                
-                W12:QtWidgets.QWidget,          #W12= Vertical spacer_4                                                                   
-                W13:QtWidgets.QWidget, Layout:QtWidgets.QGridLayout):                                                  
-        
-        G.re_add(W1,Layout, 0,0)
-        G.re_add(W2,Layout, 0,1)
-        G.re_add(W3,Layout, 1,0)
-        G.re_add(W4,Layout, 2,0)
-        G.re_add(W5,Layout, 2,1)
-        G.re_add(W6,Layout, 3,0)
-        G.re_add(W7,Layout, 4,0)
-        G.re_add(W8,Layout, 5,0, cspan=2)
-        G.re_add(W9,Layout, 6,0)
-        G.re_add(W10,Layout, 7,0)
-        G.re_add(W11,Layout, 8,0, cspan=2)
-        G.re_add(W12,Layout, 9,0)
-        G.re_add(W13,Layout, 10,0)
-
-
-        
-
-
-
-'''with open('config.json','r') as f:
-    config=json.load(f)
-    conn=m.connect(user='root',host='LocalHost',
-                   database=config['database'],
-                   password=config['password'])
-
-
-T=Tasks(conn)
-b=T.fetchall()
-
-
-if __name__=='__main__':
-    app = QtWidgets.QApplication(sys.argv)
-
-    window = TasksWindow(T,b[9])
-
-    window.show()
-
-    sys.exit(app.exec_())
-'''
+ 
