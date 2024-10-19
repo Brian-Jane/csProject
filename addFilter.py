@@ -1,8 +1,6 @@
-from PyQt5 import QtWidgets,QtGui,QtCore
-from Libraries.Tasks import Tasks,taskobject,Filter
-import time,datetime
-import Libraries.GUIFunc as G
-import mysql.connector as m
+from PyQt5 import QtWidgets
+from Libraries.Tasks import Filter
+import datetime
 
 class addFilter(QtWidgets.QDialog):
     def __init__(self,filter:Filter=None):

@@ -6,11 +6,14 @@ from Libraries.Tasks import *
 FONT= QtGui.QFont()
 FONT.setPointSize(10)
 
+HEADINGFONT= QtGui.QFont()
+HEADINGFONT.setPointSize(10)
+HEADINGFONT.setBold(True)
+
 def generateLighterColor(color):
     Qcolor = QtGui.QColor(color)
     return Qcolor.lighter(30).name()
-     
-
+ 
 def genCheckbox(task:taskobject,callback, delete_handler, modify_handler, layout:QtWidgets.QBoxLayout,
                 row:int,column:int,color=None):
     checkbox=rightClickableBttn(task)
@@ -24,25 +27,58 @@ def genCheckbox(task:taskobject,callback, delete_handler, modify_handler, layout
 
     layout.addWidget(checkbox,row,column)
 
-
-
 def genLabel(data,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,color=None):
     Label=QtWidgets.QLabel(data)
-    Label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-    
+    Label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)    
     if color:
         background = generateLighterColor(color)
         Label.setStyleSheet(f"background-color:{background};border:5px solid;border-radius:10px;border-color:{color};")
     if row is None: layout.addWidget(Label)
     else: layout.addWidget(Label,row,column,1,1)
     Label.setFont(FONT)
+    return Label
 
-def genLineEdit(layout:QtWidgets.QBoxLayout, row:int=None, column:int=None):
+def genLineEdit(layout:QtWidgets.QBoxLayout, row:int=None, column:int=None) ->QtWidgets.QLineEdit:
+    """Genrates a LineEdit(Textbox)"""
     LineEdit=QtWidgets.QLineEdit()
     if (row,column)==(None,None): layout.addWidget(LineEdit)
     else: layout.addWidget(LineEdit,row,column)
     LineEdit.setFont(FONT)
     return LineEdit
+
+def invisible(L:list):
+    for widget in L:
+        widget.hide()
+
+def visible(L:list):
+    for widget in L:
+        widget.show()
+
+def genRadioBttn(data,layout:QtWidgets.QBoxLayout,row:int=None,column:int=None, bttngrp:QtWidgets.QButtonGroup=None, id:int=None,
+                 l:list=None) ->QtWidgets.QRadioButton:
+    """Generates a RadioBttn"""
+    Radiobttn=QtWidgets.QRadioButton(str(data))
+    Radiobttn.setFont(FONT)
+    if row is None: layout.addWidget(Radiobttn)
+    else: layout.addWidget(Radiobttn,row,column)
+
+    if not id: bttngrp.addButton(Radiobttn)
+    if id: bttngrp.addButton(Radiobttn,id=id)
+    if l: l.append(Radiobttn)
+    return Radiobttn
+def genComboBox(Items:list,layout:QtWidgets.QBoxLayout, row:int=None, column:int=None,
+                l:list=None) ->QtWidgets.QComboBox:  
+    """Generates a ComboBox(DropDown Box)""" 
+    combo=QtWidgets.QComboBox()
+    for i in Items:
+        combo.addItem(str(i))
+
+    if row!=None: layout.addWidget(combo,row,column)
+    elif row==None: layout.addWidget(combo)
+    combo.setFont(FONT)
+
+    if l: l.append(combo)
+    return combo
 
 def genLine(layout:QtWidgets.QBoxLayout,row,column):
     v_line = QtWidgets.QFrame()
@@ -119,8 +155,6 @@ def deleteRow(layout:QtWidgets.QGridLayout,row):
                 widget.deleteLater()
 
 
-
-
 class Folder(QtWidgets.QWidget):
     def __init__(self,text,color,editCallback,selectCallback,deleteCallback,buttonGroup):
         super().__init__()
@@ -154,7 +188,6 @@ class Folder(QtWidgets.QWidget):
         if text and ok:
             self.editCallback(text,self.color)
 
-
 class editableButton(QtWidgets.QPushButton):
     doubleClicked = QtCore.pyqtSignal()
     def __init__(self,*args,**kwargs):
@@ -177,7 +210,6 @@ class editableButton(QtWidgets.QPushButton):
         else:
             super().contextMenuEvent(event)
     
-
 class rightClickableBttn(QtWidgets.QCheckBox):
     rightClicked = QtCore.pyqtSignal()
     def __init__(self,*args,**kwargs):
@@ -211,5 +243,3 @@ class rightClickableBttn(QtWidgets.QCheckBox):
             modify.triggered.connect(lambda: print("Modify handler not set"))
 
         context_menu.exec_(event.globalPos())  # Show the context menu
-
-        

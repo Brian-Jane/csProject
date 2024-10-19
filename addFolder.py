@@ -2,7 +2,7 @@ import sys
 from PyQt5 import QtWidgets,QtGui
 from Libraries.Tasks import Tasks,taskobject
 import time
-import Libraries.GUIFunc as G
+import Libraries.Gui as G
 import mysql.connector as m
 import datetime
 import pprint
@@ -48,19 +48,4 @@ class addFolderWindow(QtWidgets.QDialog):
         else:
             self.newFolder = (self.folder.text(),self.color)
             self.accept()
-            
-"""
-with open('config.json','r') as file:
-    config = json.loads(file.read())
-mycon = m.connect(user='root',host='localhost',
-                          password=config['password'],
-                          database=config['database'])
-t=Tasks(mycon)
-app = QtWidgets.QApplication(sys.argv)
-
-window = addFolderWindow(t)
-
-window.show()
-
-sys.exit(app.exec_())
-"""
+     

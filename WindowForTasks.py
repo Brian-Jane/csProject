@@ -1,13 +1,8 @@
-import sys
-from PyQt5 import QtWidgets,QtGui
+from PyQt5 import QtWidgets
 from Libraries.Tasks import Tasks,taskobject
 from PyQt5.QtCore import QTime
-import Libraries.GUIFunc as G
-import mysql.connector as m
+import Libraries.Gui as G
 import datetime
-import pprint
-import json
-##MAKE SURE THAT SUBMIT BUTTON CLOSES THE WINDOW OK?
 
 class TasksWindow(QtWidgets.QWidget):
     def __init__(self, T:Tasks,refreshFunc, taskobject:taskobject=None,folderList=[]):
@@ -103,15 +98,12 @@ class TasksWindow(QtWidgets.QWidget):
 
         if self.taskobject:
             self.button_group1.button(int(self.taskobject.priority)).setChecked(True)
-
     
         self.mainLayout.addItem(self.layout2,8,0,1,2)
         
         #Row-9
         vertical_spacer_4 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.mainLayout.addItem(vertical_spacer_4, 9, 0)
-
-
 
         #Row-10
         self.Repeat=QtWidgets.QPushButton('Repeat -->')
@@ -177,9 +169,6 @@ class TasksWindow(QtWidgets.QWidget):
                 self.no.setText(str(RevInterval_hours))
                 self.revCombo.setCurrentText('hours')
 
-        
-
-
         #Row-12
         vertical_spacer_5 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.mainLayout.addItem(vertical_spacer_5, 12, 0)
@@ -190,15 +179,8 @@ class TasksWindow(QtWidgets.QWidget):
         
         self.submitBttn.clicked.connect(self.Submit_clicked)
 
-
-        ##
         self.setLayout(self.mainLayout)
-
-
-
 #Buttons Functions --->
-
-
     def priority_checked(self):
         checked_button = self.button_group1.checkedButton()
     
@@ -253,9 +235,6 @@ class TasksWindow(QtWidgets.QWidget):
         self.priority=int(button.text())
         print(button.isChecked())
         
-    
-
-
     def Submit_clicked(self):
         month_map = {"january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6, "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12}
         
@@ -288,15 +267,11 @@ class TasksWindow(QtWidgets.QWidget):
                     self.RevIntrvl=int(datetime.timedelta(hours=int(self.no.text())).total_seconds())
 
             self.DOC=datetime.datetime.now()
-
-        
         if self.priority is None:self.priority=5
         if self.RevIntrvl is not None and self.Revtype is None:self.Revtype='e'
 
-
         c=1     #'c' keeps track of any error in runtime. 
                 #IF c=1, only then the program will execute
-
         if not self.task.text():
             QtWidgets.QMessageBox.warning(self,"Warning","Please enter the task")
             c=0
@@ -319,10 +294,7 @@ class TasksWindow(QtWidgets.QWidget):
                 if date <= datetime.datetime.now():
                     c=0
                     QtWidgets.QMessageBox.warning(self,"Warning","Date has already passed")  
-            except:
-                pass
-
-
+            except:pass
         if c==1:
             d={
                 'msg': self.task.text(), 
@@ -335,21 +307,16 @@ class TasksWindow(QtWidgets.QWidget):
             
             if d['Folder']=='None':
                 d['Folder']=None
-
-            if not self.T.searchTask(d['msg']):
-                if self.taskobject:
-                    self.T.updateTask(self.taskobject.ID,**d)
-                else:
-                    self.T.addTask(d['msg'], d['priority'], date, d['Folder'], ReviveInterval=d['RevivalInterval'],RevivalType=d['RevivalType'])
-                
+            if self.taskobject:
+                self.T.updateTask(self.taskobject.ID,**d)
+                self.close()
+            elif not self.T.searchTask(d['msg']):                
+                self.T.addTask(d['msg'], d['priority'], date, d['Folder'], ReviveInterval=d['RevivalInterval'],RevivalType=d['RevivalType'])
                 self.close()  #Close the window when submit is clicked
-
-                if self.refreshFunc: self.refreshFunc()
-
             else:
                 QtWidgets.QMessageBox.warning(self,"Error","Task Already Present")
-                  
-
+            if self.refreshFunc: self.refreshFunc()
+            
     def is_valid_date(self, day: int, month: str):
         run = True
         if not isinstance(month, str):
@@ -405,6 +372,5 @@ class TasksWindow(QtWidgets.QWidget):
                     run = False  # Not a leap year if divisible by 100 but not 400
             else:
                 run = False  # Not a leap year if not divisible by 4
-
         return run
  

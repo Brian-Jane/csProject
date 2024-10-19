@@ -1,15 +1,11 @@
-#from TRIALS.untitled import *
 import GUI.Mainwindow as mw
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPalette,QColor
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QStyleFactory
 import mysql.connector as connector
 from datetime import datetime,timedelta
 
-from Libraries import Tasks
-from Libraries import Gui
+from Libraries import Tasks,Gui
 from addFolder import addFolderWindow
 from addFilter import addFilter
 
@@ -137,12 +133,10 @@ class TasksPage:
         self.refreshTasks()
     def renderTasks(self):
         """displays all tasks in the given input layout"""
-        layout = self.tasksLayout
         def taskCheckboxCallback(ID):
             if not self.filter.param[self.filter.completedTask]:self.tasks.completeTask(ID)
             else:self.tasks.redoTask(ID)
-            self.refreshTasks()
-        
+            self.refreshTasks()       
 
         def delete_handler(task:Tasks.Tasks,taskobject:Tasks.taskobject):
             if not (taskobject) : raise ValueError
@@ -222,24 +216,11 @@ class MyyMainWindow(QtWidgets.QMainWindow):
                               self.ui.scrollAreaWidgetContents_2.layout(),
                               self.ui.addFolderbttn,self.ui.CompletedTasks,self.ui.filter,
                               self.ui.SearchBar,self.ui.searchBttn,self.ui.Today)
- 
-
-    def on_AllTasksButton_released(self):
-        allTasksIndex = self.stackedWidgetPages["AllTasks"]
-        self.ui.stackedWidget.setCurrentIndex(allTasksIndex)
-        self.refreshTasks(self.ui.AllTasks_GridLayout)
-
-        
-
-    def on_FoldersButton_released(self):
-        foldersIndex = self.stackedWidgetPages["Folders"]
-        self.ui.stackedWidget.setCurrentIndex(foldersIndex)   
-
     def connectSlotsByName(self):
         # Automatically connect signals to slots based on naming convention
         super().connectSlotsByName()
 
-    def on_addTasbkttn_released(self):
+    def on_addTaskbttn_released(self):
         folderList = [i[0] for i in self.tasks.fetchFolders()]
         self.TaskWindow=TasksWindow(self.tasks,self.tasksPage.refreshTasks,folderList=folderList)
         self.TaskWindow.show()
