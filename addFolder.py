@@ -1,12 +1,5 @@
-import sys
-from PyQt5 import QtWidgets,QtGui
-from Libraries.Tasks import Tasks,taskobject
-import time
+from PyQt5 import QtWidgets
 import Libraries.Gui as G
-import mysql.connector as m
-import datetime
-import pprint
-import json
 
 
 class addFolderWindow(QtWidgets.QDialog):

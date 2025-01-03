@@ -33,7 +33,7 @@ class TasksWindow(QtWidgets.QWidget):
         W2=G.genLabel("Folder",self.mainLayout,2,0)
         W2.setFont(G.HEADINGFONT)
 
-        self.folder=G.genComboBox(folderList,self.mainLayout,2,1)
+        self.folder=G.genComboBox(["None"]+folderList,self.mainLayout,2,1)
         if self.taskobject and self.taskobject.folder:
             self.folder.setCurrentText(self.taskobject.folder)
 
